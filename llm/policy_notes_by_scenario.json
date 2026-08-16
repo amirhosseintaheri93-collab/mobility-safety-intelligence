@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "project_title": "AV Safety Policy Intelligence Platform",
+    "version": "0.2",
+    "created_for": "PhD Phase II",
+    "description": "Grounded policy interpretation notes for validated SUMO simulation outputs, organized by scenario number and tau value.",
+    "important_notice": "These notes are derived from validated simulation outputs and should not be interpreted as real-world crash predictions."
+  },
+  "global_guardrails": {
+    "allowed_language": [
+      "based on the tested simulation configurations",
+      "within the validated simulation environment",
+      "grounded in validated simulation outputs",
+      "policy interpretation",
+      "surrogate safety indicators"
+    ],
+    "forbidden_language": [
+      "AVs eliminate crashes",
+      "zero hallucination",
+      "impact speed",
+      "impact vehicle pairs",
+      "proof of safety",
+      "real-world guarantee"
+    ]
+  },
+  "scenarios": {
+    "S1_tau_0.6": {
+      "scenario_name": "S1_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 1 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 1 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S1_tau_0.8 and S1_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 1 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S1_tau_0.8": {
+      "scenario_name": "S1_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 1 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 1 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S1_tau_0.6 and S1_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 1 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S1_tau_1.0": {
+      "scenario_name": "S1_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 1 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 1 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S1_tau_0.6 and S1_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 1 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S2_tau_0.6": {
+      "scenario_name": "S2_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 2 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 2 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S2_tau_0.8 and S2_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 2 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S2_tau_0.8": {
+      "scenario_name": "S2_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 2 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 2 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S2_tau_0.6 and S2_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 2 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S2_tau_1.0": {
+      "scenario_name": "S2_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 2 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 2 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S2_tau_0.6 and S2_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 2 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S3_tau_0.6": {
+      "scenario_name": "S3_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 3 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 3 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S3_tau_0.8 and S3_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 3 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S3_tau_0.8": {
+      "scenario_name": "S3_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 3 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 3 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S3_tau_0.6 and S3_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 3 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S3_tau_1.0": {
+      "scenario_name": "S3_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 3 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 3 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S3_tau_0.6 and S3_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 3 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S4_tau_0.6": {
+      "scenario_name": "S4_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 4 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 4 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S4_tau_0.8 and S4_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 4 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S4_tau_0.8": {
+      "scenario_name": "S4_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 4 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 4 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S4_tau_0.6 and S4_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 4 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S4_tau_1.0": {
+      "scenario_name": "S4_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 4 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 4 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S4_tau_0.6 and S4_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 4 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S5_tau_0.6": {
+      "scenario_name": "S5_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 5 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 5 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S5_tau_0.8 and S5_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 5 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S5_tau_0.8": {
+      "scenario_name": "S5_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 5 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 5 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S5_tau_0.6 and S5_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 5 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S5_tau_1.0": {
+      "scenario_name": "S5_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 5 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 5 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S5_tau_0.6 and S5_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 5 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S6_tau_0.6": {
+      "scenario_name": "S6_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 6 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 6 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S6_tau_0.8 and S6_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 6 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S6_tau_0.8": {
+      "scenario_name": "S6_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 6 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 6 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S6_tau_0.6 and S6_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 6 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S6_tau_1.0": {
+      "scenario_name": "S6_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 6 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 6 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S6_tau_0.6 and S6_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 6 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S7_tau_0.6": {
+      "scenario_name": "S7_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 7 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 7 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S7_tau_0.8 and S7_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 7 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S7_tau_0.8": {
+      "scenario_name": "S7_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 7 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 7 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S7_tau_0.6 and S7_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 7 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S7_tau_1.0": {
+      "scenario_name": "S7_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 7 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 7 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S7_tau_0.6 and S7_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 7 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S8_tau_0.6": {
+      "scenario_name": "S8_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 8 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 8 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S8_tau_0.8 and S8_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 8 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S8_tau_0.8": {
+      "scenario_name": "S8_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 8 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 8 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S8_tau_0.6 and S8_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 8 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S8_tau_1.0": {
+      "scenario_name": "S8_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 8 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 8 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S8_tau_0.6 and S8_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 8 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S9_tau_0.6": {
+      "scenario_name": "S9_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 9 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 9 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S9_tau_0.8 and S9_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 9 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S9_tau_0.8": {
+      "scenario_name": "S9_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 9 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 9 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S9_tau_0.6 and S9_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 9 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S9_tau_1.0": {
+      "scenario_name": "S9_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 9 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 9 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S9_tau_0.6 and S9_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 9 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S10_tau_0.6": {
+      "scenario_name": "S10_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 10 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 10 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S10_tau_0.8 and S10_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 10 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S10_tau_0.8": {
+      "scenario_name": "S10_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 10 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 10 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S10_tau_0.6 and S10_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 10 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S10_tau_1.0": {
+      "scenario_name": "S10_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 10 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 10 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S10_tau_0.6 and S10_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 10 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S11_tau_0.6": {
+      "scenario_name": "S11_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 11 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 11 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S11_tau_0.8 and S11_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 11 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S11_tau_0.8": {
+      "scenario_name": "S11_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 11 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 11 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S11_tau_0.6 and S11_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 11 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S11_tau_1.0": {
+      "scenario_name": "S11_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 11 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 11 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S11_tau_0.6 and S11_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 11 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S12_tau_0.6": {
+      "scenario_name": "S12_tau_0.6",
+      "tau": 0.6,
+      "summary": "Scenario 12 evaluated with a 0.6 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 12 under a 0.6 s headway assumption.",
+        "The 0.6 s setting represents the shortest tested headway and should be reviewed carefully for severe-conflict sensitivity.",
+        "Comparisons should be made against S12_tau_0.8 and S12_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 12 across the three tested tau values.",
+        "Useful for evaluating whether shorter following-distance assumptions change the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S12_tau_0.8": {
+      "scenario_name": "S12_tau_0.8",
+      "tau": 0.8,
+      "summary": "Scenario 12 evaluated with a 0.8 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 12 under a 0.8 s headway assumption.",
+        "The 0.8 s setting provides an intermediate comparison point between 0.6 s and 1.0 s.",
+        "Comparisons should be made against S12_tau_0.6 and S12_tau_1.0 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 12 across the three tested tau values.",
+        "Useful for examining whether a moderate headway setting changes severe-conflict patterns."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    },
+    "S12_tau_1.0": {
+      "scenario_name": "S12_tau_1.0",
+      "tau": 1.0,
+      "summary": "Scenario 12 evaluated with a 1.0 s time-headway setting.",
+      "policy_interpretation": [
+        "Based on the tested simulation configurations, this run should be interpreted as Scenario 12 under a 1.0 s headway assumption.",
+        "The 1.0 s setting represents the largest tested headway and can be compared with shorter-headway variants.",
+        "Comparisons should be made against S12_tau_0.6 and S12_tau_0.8 rather than against unsimulated settings."
+      ],
+      "planning_relevance": [
+        "Supports comparison of Scenario 12 across the three tested tau values.",
+        "Useful for evaluating whether a larger headway setting stabilizes the conflict profile."
+      ],
+      "limitations": [
+        "Results are simulation-based and do not represent observed crash data.",
+        "Findings apply only to the tested network, demand assumptions, and behavioral configuration."
+      ]
+    }
+  }
+}

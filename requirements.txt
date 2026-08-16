@@ -1,0 +1,12 @@
+streamlit
+pandas
+plotly
+altair
+openai
+pyproj
+numpy
+scikit-learn
+lightgbm
+shap
+joblib
+matplotlib

@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+
+# Generated outputs and temporary files
+outputs/
+*.log
+*.tmp
+
+# Full research event tables stay outside the public repository
+data/ds_vt_ct_csv.CSV
+data/ds_vt_ct_0.8_csv.CSV
+data/ds_vt_ct_1.0_csv.CSV
+data/hotspot_maps/*.html
+private_data/
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS metadata
+.DS_Store

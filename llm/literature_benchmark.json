@@ -1,0 +1,96 @@
+{
+  "title": "Advancing safety through connected and autonomous vehicles: a meta-analysis of market penetration and safety improvement rates from 2015 to 2024",
+  "short_title": "CAV market penetration and safety meta-analysis",
+  "authors": "Taheri, A., Yang, J., Müller, S., Milakis, D., et al.",
+  "year": 2026,
+  "journal": "European Transport Research Review",
+  "doi": "10.1186/s12544-026-00774-9",
+  "article_url": "https://doi.org/10.1186/s12544-026-00774-9",
+  "supplement_url": "https://link.springer.com/article/10.1186/s12544-026-00774-9#Sec20",
+  "license": "Creative Commons Attribution 4.0 International",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "coverage": {
+    "study_years": "2015-2024",
+    "studies": 49,
+    "effect_sizes_reported": 354,
+    "search_cutoff": "2024-04-22"
+  },
+  "methods": [
+    "PRISMA 2020 and PICO-guided study selection",
+    "inverse-variance weighting",
+    "DerSimonian-Laird random-effects modeling",
+    "Cochran's Q, I-squared, and tau-squared heterogeneity assessment",
+    "Begg and Egger publication-bias tests",
+    "trim-and-fill adjustment",
+    "focused leave-one-study-out sensitivity analysis",
+    "comparison of logarithmic, linear, exponential, and power fits"
+  ],
+  "sir_definition": "SIR = ((CN0 - CNx) / CN0) x 100%, where CN0 is the conflict count in the zero-CAV baseline and CNx is the conflict count at a selected CAV market penetration rate.",
+  "published_adjusted_points": [
+    {"mpr_percent": 10, "sir_percent": 2.8},
+    {"mpr_percent": 20, "sir_percent": 4.9},
+    {"mpr_percent": 30, "sir_percent": 8.0},
+    {"mpr_percent": 40, "sir_percent": 9.4},
+    {"mpr_percent": 50, "sir_percent": 17.7},
+    {"mpr_percent": 60, "sir_percent": 21.4},
+    {"mpr_percent": 70, "sir_percent": 28.5},
+    {"mpr_percent": 80, "sir_percent": 33.8},
+    {"mpr_percent": 90, "sir_percent": 39.4}
+  ],
+  "reported_best_fit": {
+    "family": "Power",
+    "r_squared": 0.9928,
+    "interpretation": "The paper reports that the power form fits the refined MPR-SIR relationship better than the tested linear and exponential alternatives."
+  },
+  "reconstructed_display_curve": {
+    "formula": "SIR (%) approximately equals 0.0494 x MPR (%)^1.4879",
+    "r_squared_against_rounded_points": 0.992,
+    "status": "Dashboard display guide reconstructed from the nine rounded, sensitivity-adjusted values published in the article; it is not presented as the paper's exact printed coefficient equation."
+  },
+  "surrogate_measure_distribution": [
+    {"group": "TTC family (TTC, TET, TIT)", "share_percent": 64},
+    {"group": "PET", "share_percent": 15},
+    {"group": "Other surrogate measures", "share_percent": 21}
+  ],
+  "consistent_with_web_app": [
+    "Both bodies of work use simulation-derived traffic conflicts and surrogate safety measures rather than observed crash outcomes.",
+    "TTC-based evidence is central to both the literature synthesis and the Berlin SUMO analysis.",
+    "Both examine how automated-vehicle market penetration relates to safety outcomes in mixed traffic.",
+    "Both require sensitivity-aware and context-bounded interpretation rather than universal causal claims."
+  ],
+  "comparison_boundaries": [
+    "The meta-analysis pools heterogeneous studies, networks, technologies, and surrogate measures; the web app analyzes one prepared Berlin SUMO study design.",
+    "Published SIR values are relative reductions from each study's zero-CAV baseline; dashboard conflict counts and severe-conflict shares are not automatically SIR values.",
+    "The meta-analysis benchmark must not be used to overwrite, validate, or numerically blend with the local simulation outputs.",
+    "Neither source alone establishes observed crash reduction or a causal effect for an untested deployment."
+  ],
+  "agent_rules": [
+    "Identify the source as a published literature benchmark before quoting an MPR-SIR value.",
+    "Cite the DOI for every substantive benchmark answer.",
+    "Keep literature evidence separate from Berlin dashboard evidence.",
+    "Use only the nine published adjusted MPR-SIR points for exact benchmark values.",
+    "Describe the reconstructed curve as an approximate display guide, not the exact published equation."
+  ],
+  "chunks": [
+    {
+      "source": "Taheri et al. (2026), DOI 10.1186/s12544-026-00774-9",
+      "heading": "Literature benchmark - scope and method",
+      "text": "The open-access study synthesizes 49 studies and reports 354 effect sizes from 2015-2024. It uses PRISMA/PICO selection, inverse-variance weighting, a DerSimonian-Laird random-effects model, heterogeneity assessment, publication-bias tests, trim-and-fill correction, and focused sensitivity analysis."
+    },
+    {
+      "source": "Taheri et al. (2026), DOI 10.1186/s12544-026-00774-9",
+      "heading": "Literature benchmark - refined MPR-SIR results",
+      "text": "The sensitivity-adjusted Safety Improvement Rate values are 2.8%, 4.9%, 8.0%, 9.4%, 17.7%, 21.4%, 28.5%, 33.8%, and 39.4% at CAV market penetration rates of 10% through 90% in ten-point increments. The paper reports a power model as the best fit with R-squared 0.9928."
+    },
+    {
+      "source": "Taheri et al. (2026), DOI 10.1186/s12544-026-00774-9",
+      "heading": "Literature benchmark - surrogate safety measures",
+      "text": "TTC-family measures account for 64% of the included analyses, PET for 15%, and other surrogate measures for 21%. This supports the relevance of TTC-based dashboard interpretation while also showing that a single surrogate measure does not capture every safety dimension."
+    },
+    {
+      "source": "Taheri et al. (2026), DOI 10.1186/s12544-026-00774-9",
+      "heading": "Literature benchmark - interpretation boundary",
+      "text": "The benchmark aggregates heterogeneous simulation contexts and should be treated as indicative rather than definitive. It is not a direct validation of the Berlin SUMO scenarios, and its SIR values must not be substituted for local conflict counts, severe-conflict shares, or crash outcomes."
+    }
+  ]
+}

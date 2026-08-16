@@ -1,0 +1,81 @@
+{
+  "references": [
+    {
+      "id": "ref_ttc_hayward_1972",
+      "topic": ["ttc", "surrogate safety", "conflict severity"],
+      "citation": "Hayward, J. C. (1972). Near-miss determination through use of a scale of danger. Highway Research Record, 384, 24-34.",
+      "url": "https://trid.trb.org/view/116888",
+      "note": "Introduced time-to-collision as a way to characterize proximity to potential collisions."
+    },
+    {
+      "id": "ref_hyden_1987",
+      "topic": ["traffic conflicts", "surrogate safety"],
+      "citation": "Hyden, C. (1987). The development of a method for traffic safety evaluation: The Swedish Traffic Conflicts Technique. Lund University.",
+      "url": "https://portal.research.lu.se/en/publications/the-development-of-a-method-for-traffic-safety-evaluation-the-swed",
+      "note": "Foundational work on traffic conflict techniques for safety evaluation without relying only on crash observations."
+    },
+    {
+      "id": "ref_gettman_head_2003",
+      "topic": ["surrogate safety", "microsimulation", "ttc"],
+      "citation": "Gettman, D., & Head, L. (2003). Surrogate safety measures from traffic simulation models. Transportation Research Record, 1840(1), 104-115.",
+      "url": "https://doi.org/10.3141/1840-12",
+      "note": "Discusses surrogate safety measures derived from traffic simulation models."
+    },
+    {
+      "id": "ref_sumo_2018",
+      "topic": ["sumo", "microsimulation", "simulation"],
+      "citation": "Lopez, P. A., et al. (2018). Microscopic traffic simulation using SUMO. 2018 IEEE International Conference on Intelligent Transportation Systems, 2575-2582.",
+      "url": "https://doi.org/10.1109/ITSC.2018.8569938",
+      "note": "Describes SUMO as an open-source microscopic traffic simulation platform."
+    },
+    {
+      "id": "ref_mixed_traffic_2017",
+      "topic": ["automated vehicles", "mixed traffic", "headway", "policy"],
+      "citation": "Milakis, D., van Arem, B., & van Wee, B. (2017). Policy and society related implications of automated driving: A review of literature and directions for future research. Journal of Intelligent Transportation Systems, 21(4), 324-348.",
+      "url": "https://doi.org/10.1080/15472450.2017.1291351",
+      "note": "Reviews policy implications of automated driving and the transition to mixed traffic."
+    },
+    {
+      "id": "ref_surrogate_review_2014",
+      "topic": ["surrogate safety", "policy", "limitations"],
+      "citation": "Zheng, L., Ismail, K., & Meng, X. (2014). Traffic conflict techniques for road safety analysis: Open questions and some insights. Canadian Journal of Civil Engineering, 41(7), 633-641.",
+      "url": "https://doi.org/10.1139/cjce-2013-0558",
+      "note": "Reviews the use and limitations of traffic conflict techniques for road safety analysis."
+    },
+    {
+      "id": "ref_safe_system_2016",
+      "topic": ["policy", "safe system", "speed management", "urban safety"],
+      "citation": "International Transport Forum. (2016). Zero Road Deaths and Serious Injuries: Leading a Paradigm Shift to a Safe System. OECD Publishing.",
+      "url": "https://doi.org/10.1787/9789282108055-en",
+      "note": "Frames road safety policy around system-level responsibility, speed management, and injury prevention."
+    },
+    {
+      "id": "ref_intersection_safety_2010",
+      "topic": ["policy", "intersection", "urban design", "traffic management"],
+      "citation": "Federal Highway Administration. (2010). Signalized Intersections: Informational Guide. FHWA-HRT-04-091.",
+      "url": "https://highways.dot.gov/research/publications/safety/FHWA-HRT-04-091",
+      "note": "Provides intersection-level planning and operations guidance relevant to interpreting clustered conflicts at junctions and squares."
+    },
+    {
+      "id": "ref_taheri_meta_2026",
+      "topic": ["meta-analysis", "literature benchmark", "market penetration", "safety improvement rate", "ttc", "pet", "automated vehicles", "mixed traffic", "policy", "limitations"],
+      "citation": "Taheri, A., Yang, J., Müller, S., Milakis, D., et al. (2026). Advancing safety through connected and autonomous vehicles: a meta-analysis of market penetration and safety improvement rates from 2015 to 2024. European Transport Research Review, 18, 9.",
+      "url": "https://doi.org/10.1186/s12544-026-00774-9",
+      "note": "Open-access PhD-related meta-analysis used as a separate literature benchmark for the MPR-SIR relationship, surrogate-measure coverage, and interpretation boundaries."
+    },
+    {
+      "id": "ref_wang_ssm_review_2021",
+      "topic": ["ttc", "pet", "surrogate safety", "automated vehicles", "literature benchmark", "limitations"],
+      "citation": "Wang, C., Xie, Y., Huang, H., & Liu, P. (2021). A review of surrogate safety measures and their applications in connected and automated vehicles safety modeling. Accident Analysis & Prevention, 157, 106157.",
+      "url": "https://doi.org/10.1016/j.aap.2021.106157",
+      "note": "Review cited by Taheri et al. (2026) and consistent with the app's cautious use of TTC-based surrogate evidence."
+    },
+    {
+      "id": "ref_xiao_meta_2021",
+      "topic": ["meta-analysis", "literature benchmark", "market penetration", "safety improvement rate", "automated vehicles", "mixed traffic"],
+      "citation": "Xiao, G., Lee, J., Jiang, Q., Huang, H., Abdel-Aty, M., & Wang, L. (2021). Safety improvements by intelligent connected vehicle technologies: A meta-analysis considering market penetration rates. Accident Analysis & Prevention, 159, 106234.",
+      "url": "https://doi.org/10.1016/j.aap.2021.106234",
+      "note": "Earlier MPR-SIR meta-analysis used as the methodological benchmark extended by Taheri et al. (2026)."
+    }
+  ]
+}

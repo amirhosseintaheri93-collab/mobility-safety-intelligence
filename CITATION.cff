@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "Mobility Safety Intelligence"
+type: software
+authors:
+  - family-names: "Taheri"
+    given-names: "Amirhossein"
+    affiliation: "Technische Universitaet Berlin"
+version: 0.1.0
+date-released: 2026-08-15
+repository-code: "https://github.com/amirhosseintaheri93-collab/mobility-safety-intelligence"
+license: MIT
+keywords:
+  - traffic safety
+  - SUMO
+  - surrogate safety
+  - automated vehicles
+  - LightGBM
+  - SHAP
+  - kernel density estimation
+  - geospatial visualisation
+preferred-citation:
+  type: unpublished
+  title: "How Do Automated Vehicle Penetration, Vehicle-Size Composition, and Desired Headway Shape Urban Traffic Conflict Patterns? An Analysis Using a Calibrated Microsimulation Model"
+  authors:
+    - family-names: "Taheri"
+      given-names: "Amirhossein"
+    - family-names: "Dorn"
+      given-names: "Anton"
+    - family-names: "Karimi"
+      given-names: "Arastoo"
+    - family-names: "Budde"
+      given-names: "Edgar"
+    - family-names: "Milakis"
+      given-names: "Dimitris"
+    - family-names: "Mueller"
+      given-names: "Steffen"
+  year: 2026
+  url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7025301"

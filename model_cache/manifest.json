@@ -1,0 +1,320 @@
+{
+  "schema_version": "lightgbm-shap-cache-v1",
+  "generated_at": "2026-08-10T08:09:04.468425+00:00",
+  "combination_count": 24,
+  "sources": {
+    "data/ds_vt_ct_csv.CSV": {
+      "size": 10105048,
+      "mtime_ns": 1780328506248825100,
+      "sha256": "e63daa59b703a45377db5c4328a5c1840d56ff13c56258eb6bdf1b04b7510353"
+    },
+    "data/ds_vt_ct_0.8_csv.CSV": {
+      "size": 9171806,
+      "mtime_ns": 1780328506094698200,
+      "sha256": "b806bfc435e250e3fd3f59176b62de4484282df3ffb8bf0ec916ee7b620a5c18"
+    },
+    "data/ds_vt_ct_1.0_csv.CSV": {
+      "size": 6628098,
+      "mtime_ns": 1780328506217143000,
+      "sha256": "cf61c1540b814a1e27f639e09416737a25aadbebf1f9b09772a513dd00fb108d"
+    }
+  },
+  "libraries": {
+    "pandas": "3.0.3",
+    "scikit_learn": "1.9.0",
+    "lightgbm": "4.7.0",
+    "shap": "0.51.0"
+  },
+  "artifacts": {
+    "regression__microscopic__all-headways": {
+      "file": "regression__microscopic__all-headways.joblib",
+      "size": 687831,
+      "sha256": "7bae4aeea8e6a0fdfc301124a9d48de746babe8814cab041bf2b2248b1e9b7dc",
+      "task": "Continuous minTTC",
+      "model_mode": "Microscopic",
+      "headway_scope": "All headways",
+      "modeling_rows": 217610,
+      "feature_count": 13,
+      "effective_configurations": 34,
+      "runtime_seconds": 13.624
+    },
+    "regression__microscopic__0p6-s": {
+      "file": "regression__microscopic__0p6-s.joblib",
+      "size": 696079,
+      "sha256": "c3b2b047321d16b440c14782744e7f56cc69beb852d8e2d1176daded9dee4660",
+      "task": "Continuous minTTC",
+      "model_mode": "Microscopic",
+      "headway_scope": "0.6 s",
+      "modeling_rows": 97001,
+      "feature_count": 13,
+      "effective_configurations": 12,
+      "runtime_seconds": 9.268
+    },
+    "regression__microscopic__0p8-s": {
+      "file": "regression__microscopic__0p8-s.joblib",
+      "size": 667689,
+      "sha256": "9fa325bacd96cc638e24d2724fcb774042fbf4edb1df83ea917e4892580e102e",
+      "task": "Continuous minTTC",
+      "model_mode": "Microscopic",
+      "headway_scope": "0.8 s",
+      "modeling_rows": 78648,
+      "feature_count": 13,
+      "effective_configurations": 12,
+      "runtime_seconds": 8.664
+    },
+    "regression__microscopic__1p0-s": {
+      "file": "regression__microscopic__1p0-s.joblib",
+      "size": 673832,
+      "sha256": "58f542c420ba08db37c04918f9128f9c3653b5fa2323dd1bd61c4e8ec5c77d8a",
+      "task": "Continuous minTTC",
+      "model_mode": "Microscopic",
+      "headway_scope": "1.0 s",
+      "modeling_rows": 61275,
+      "feature_count": 13,
+      "effective_configurations": 12,
+      "runtime_seconds": 9.544
+    },
+    "regression__policy-levers__all-headways": {
+      "file": "regression__policy-levers__all-headways.joblib",
+      "size": 177644,
+      "sha256": "c3fb2269f6e1f15564e28a5edfc67998d63f0e7bbb56f8976a9bb5861c0b731c",
+      "task": "Continuous minTTC",
+      "model_mode": "Policy levers",
+      "headway_scope": "All headways",
+      "modeling_rows": 217610,
+      "feature_count": 3,
+      "effective_configurations": 34,
+      "runtime_seconds": 12.524
+    },
+    "regression__policy-levers__0p6-s": {
+      "file": "regression__policy-levers__0p6-s.joblib",
+      "size": 112755,
+      "sha256": "ac478a208d8400c9d49b873450588fd17594030607326849501b786d21f9f4e9",
+      "task": "Continuous minTTC",
+      "model_mode": "Policy levers",
+      "headway_scope": "0.6 s",
+      "modeling_rows": 97001,
+      "feature_count": 2,
+      "effective_configurations": 12,
+      "runtime_seconds": 5.144
+    },
+    "regression__policy-levers__0p8-s": {
+      "file": "regression__policy-levers__0p8-s.joblib",
+      "size": 101707,
+      "sha256": "116d11af1d466e0650790c0e6bf33ca3f7b765f3a0350ddc84b67a6c15dcbd4a",
+      "task": "Continuous minTTC",
+      "model_mode": "Policy levers",
+      "headway_scope": "0.8 s",
+      "modeling_rows": 78648,
+      "feature_count": 2,
+      "effective_configurations": 12,
+      "runtime_seconds": 4.107
+    },
+    "regression__policy-levers__1p0-s": {
+      "file": "regression__policy-levers__1p0-s.joblib",
+      "size": 73680,
+      "sha256": "00bb6fd8718619d0a5bbcd583dce271ddb9ad03839bf085f2d65ab89ae2a11b5",
+      "task": "Continuous minTTC",
+      "model_mode": "Policy levers",
+      "headway_scope": "1.0 s",
+      "modeling_rows": 61275,
+      "feature_count": 2,
+      "effective_configurations": 12,
+      "runtime_seconds": 3.522
+    },
+    "regression__combined__all-headways": {
+      "file": "regression__combined__all-headways.joblib",
+      "size": 696555,
+      "sha256": "d0bec8f99cae275e4cc0ee29c1a2c90bb58e5995e9598f546f8977162da0bcc8",
+      "task": "Continuous minTTC",
+      "model_mode": "Combined",
+      "headway_scope": "All headways",
+      "modeling_rows": 217610,
+      "feature_count": 16,
+      "effective_configurations": 34,
+      "runtime_seconds": 23.279
+    },
+    "regression__combined__0p6-s": {
+      "file": "regression__combined__0p6-s.joblib",
+      "size": 708266,
+      "sha256": "f9cb005c1504ea123e1841e50159ecf95d6036cbc3f12150c6d4cd5b109978c2",
+      "task": "Continuous minTTC",
+      "model_mode": "Combined",
+      "headway_scope": "0.6 s",
+      "modeling_rows": 97001,
+      "feature_count": 15,
+      "effective_configurations": 12,
+      "runtime_seconds": 12.925
+    },
+    "regression__combined__0p8-s": {
+      "file": "regression__combined__0p8-s.joblib",
+      "size": 672004,
+      "sha256": "1a0eaed46089ec4f318953818a7b147f61f2cb4468defcc9a3063256c1e8f50d",
+      "task": "Continuous minTTC",
+      "model_mode": "Combined",
+      "headway_scope": "0.8 s",
+      "modeling_rows": 78648,
+      "feature_count": 15,
+      "effective_configurations": 12,
+      "runtime_seconds": 11.378
+    },
+    "regression__combined__1p0-s": {
+      "file": "regression__combined__1p0-s.joblib",
+      "size": 685246,
+      "sha256": "eb11bbe3e7d1486aea0cbc024ae7c5325f180a4c8724c574e7a56fb691d4e92a",
+      "task": "Continuous minTTC",
+      "model_mode": "Combined",
+      "headway_scope": "1.0 s",
+      "modeling_rows": 61275,
+      "feature_count": 15,
+      "effective_configurations": 12,
+      "runtime_seconds": 10.871
+    },
+    "classifier__microscopic__all-headways": {
+      "file": "classifier__microscopic__all-headways.joblib",
+      "size": 850159,
+      "sha256": "8c9fd42098214c073f1758ddafb3ffa40f18e0bddd856716270739e27cc419fb",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Microscopic",
+      "headway_scope": "All headways",
+      "modeling_rows": 217610,
+      "feature_count": 13,
+      "effective_configurations": 34,
+      "runtime_seconds": 18.811
+    },
+    "classifier__microscopic__0p6-s": {
+      "file": "classifier__microscopic__0p6-s.joblib",
+      "size": 853939,
+      "sha256": "7b6917b7a08bfb12530a022b3ea147bcf8b8a12fda635b87d24ced7aa8b4fbdf",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Microscopic",
+      "headway_scope": "0.6 s",
+      "modeling_rows": 97001,
+      "feature_count": 13,
+      "effective_configurations": 12,
+      "runtime_seconds": 11.321
+    },
+    "classifier__microscopic__0p8-s": {
+      "file": "classifier__microscopic__0p8-s.joblib",
+      "size": 845241,
+      "sha256": "a69280d06f34cfab4d291b5aca002ddcfcf66a37c0cfdb1e036312d5cf12ad21",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Microscopic",
+      "headway_scope": "0.8 s",
+      "modeling_rows": 78648,
+      "feature_count": 13,
+      "effective_configurations": 12,
+      "runtime_seconds": 9.938
+    },
+    "classifier__microscopic__1p0-s": {
+      "file": "classifier__microscopic__1p0-s.joblib",
+      "size": 818754,
+      "sha256": "19c7631e08d083acd2bde0956b134d4bbc2599120441bf8fb7bc4625c3fc83ce",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Microscopic",
+      "headway_scope": "1.0 s",
+      "modeling_rows": 61275,
+      "feature_count": 13,
+      "effective_configurations": 12,
+      "runtime_seconds": 10.211
+    },
+    "classifier__policy-levers__all-headways": {
+      "file": "classifier__policy-levers__all-headways.joblib",
+      "size": 433822,
+      "sha256": "b422af7a0bc5b3d7a0c7d8aa1276b4b628971bc4c5a133a6a2ba392929c169b7",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Policy levers",
+      "headway_scope": "All headways",
+      "modeling_rows": 217610,
+      "feature_count": 3,
+      "effective_configurations": 34,
+      "runtime_seconds": 13.31
+    },
+    "classifier__policy-levers__0p6-s": {
+      "file": "classifier__policy-levers__0p6-s.joblib",
+      "size": 185881,
+      "sha256": "0ec6ca3526b06b8354bfd7b1b9d7288843d8c20605da2bc79a53e391bce7ac47",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Policy levers",
+      "headway_scope": "0.6 s",
+      "modeling_rows": 97001,
+      "feature_count": 2,
+      "effective_configurations": 12,
+      "runtime_seconds": 4.317
+    },
+    "classifier__policy-levers__0p8-s": {
+      "file": "classifier__policy-levers__0p8-s.joblib",
+      "size": 185851,
+      "sha256": "6f1f1b450af550209c77bbfa6b160f7bed2fbb1813cc33d042d856d1db2f36ee",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Policy levers",
+      "headway_scope": "0.8 s",
+      "modeling_rows": 78648,
+      "feature_count": 2,
+      "effective_configurations": 12,
+      "runtime_seconds": 3.908
+    },
+    "classifier__policy-levers__1p0-s": {
+      "file": "classifier__policy-levers__1p0-s.joblib",
+      "size": 185221,
+      "sha256": "2babf59c7f87486be64ca346a690306c1b72743a1d2898f5b03d32f7905d2525",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Policy levers",
+      "headway_scope": "1.0 s",
+      "modeling_rows": 61275,
+      "feature_count": 2,
+      "effective_configurations": 12,
+      "runtime_seconds": 3.375
+    },
+    "classifier__combined__all-headways": {
+      "file": "classifier__combined__all-headways.joblib",
+      "size": 862479,
+      "sha256": "fad534f16dbe7918c4dd45fbae3941821f4f7f0a48c883d8dba5c23fde31d4f1",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Combined",
+      "headway_scope": "All headways",
+      "modeling_rows": 217610,
+      "feature_count": 16,
+      "effective_configurations": 34,
+      "runtime_seconds": 22.26
+    },
+    "classifier__combined__0p6-s": {
+      "file": "classifier__combined__0p6-s.joblib",
+      "size": 857746,
+      "sha256": "eae5c44d0db88dfc7dee1f253def98513c6486f222daf2989719d3a8cadd939f",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Combined",
+      "headway_scope": "0.6 s",
+      "modeling_rows": 97001,
+      "feature_count": 15,
+      "effective_configurations": 12,
+      "runtime_seconds": 17.038
+    },
+    "classifier__combined__0p8-s": {
+      "file": "classifier__combined__0p8-s.joblib",
+      "size": 853123,
+      "sha256": "c0cd722cb300735eabf002a1a69e7dad17bf248d8b74cc85e4d0d7625050635f",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Combined",
+      "headway_scope": "0.8 s",
+      "modeling_rows": 78648,
+      "feature_count": 15,
+      "effective_configurations": 12,
+      "runtime_seconds": 11.18
+    },
+    "classifier__combined__1p0-s": {
+      "file": "classifier__combined__1p0-s.joblib",
+      "size": 836395,
+      "sha256": "6f56f83c056073700307f1d4210dbd07a2db4ce10410d9c60be754935652213b",
+      "task": "Selected short-TTC classifier",
+      "model_mode": "Combined",
+      "headway_scope": "1.0 s",
+      "modeling_rows": 61275,
+      "feature_count": 15,
+      "effective_configurations": 12,
+      "runtime_seconds": 9.195
+    }
+  },
+  "completed_at": "2026-08-10T08:13:24.303771+00:00",
+  "completed_artifact_count": 24
+}
