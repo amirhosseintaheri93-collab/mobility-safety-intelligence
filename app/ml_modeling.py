@@ -9,7 +9,6 @@ import sys
 import joblib
 import numpy as np
 import pandas as pd
-from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.base import clone
 from sklearn.metrics import (
     average_precision_score,
@@ -21,6 +20,12 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import GroupKFold, StratifiedGroupKFold
+
+try:
+    from lightgbm import LGBMClassifier, LGBMRegressor
+except (ImportError, OSError):
+    LGBMClassifier = None
+    LGBMRegressor = None
 
 
 FLEET_COMPOSITIONS = {
@@ -306,6 +311,11 @@ def prepare_model_frame(
 
 
 def _build_estimator(request: ModelRequest):
+    if LGBMClassifier is None or LGBMRegressor is None:
+        raise RuntimeError(
+            "LightGBM training requires a working LightGBM/OpenMP installation. "
+            "Precomputed dashboard results can still be loaded without it."
+        )
     common = {
         "n_estimators": 320,
         "learning_rate": 0.035,

@@ -84,6 +84,37 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(points[-1], {"mpr_percent": 90, "sir_percent": 39.4})
         self.assertTrue(benchmark["comparison_boundaries"])
 
+    def test_local_study_table_matches_reported_sir(self) -> None:
+        rates = pd.read_csv(ROOT / "data" / "local_study_conflict_rates.csv")
+        required = {
+            "scenario_number",
+            "av_percent",
+            "total_conflicts_per_million_vkt",
+            "severe_conflicts_per_million_vkt",
+            "sir_total_percent",
+        }
+        self.assertTrue(required.issubset(rates.columns))
+        self.assertEqual(rates["scenario_number"].tolist(), list(range(1, 13)))
+
+        baseline = int(
+            rates.loc[
+                rates["scenario_number"].eq(1),
+                "total_conflicts_per_million_vkt",
+            ].iloc[0]
+        )
+        self.assertEqual(baseline, 95_385)
+        expected_sir = [0.0, -0.3, -1.1, 0.5, 2.6, 7.8, 5.7, 20.4, 20.4, 44.4, 42.2, 44.6]
+        self.assertEqual(rates["sir_total_percent"].tolist(), expected_sir)
+
+        calculated = (
+            (baseline - rates["total_conflicts_per_million_vkt"]) / baseline * 100
+        ).round(1)
+        pd.testing.assert_series_equal(
+            calculated,
+            rates["sir_total_percent"],
+            check_names=False,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

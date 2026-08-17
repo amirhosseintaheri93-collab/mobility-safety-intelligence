@@ -39,6 +39,7 @@ NOTES_PATH = ROOT / "llm" / "policy_notes_by_scenario.json"
 REFERENCES_PATH = ROOT / "llm" / "academic_references.json"
 MANUSCRIPT_EVIDENCE_PATH = ROOT / "llm" / "manuscript_evidence.json"
 LITERATURE_BENCHMARK_PATH = ROOT / "llm" / "literature_benchmark.json"
+LOCAL_STUDY_RATES_PATH = ROOT / "data" / "local_study_conflict_rates.csv"
 HOTSPOT_DIR = ROOT / "data" / "hotspot_maps"
 STREET_CONTEXT_PATH = ROOT / "data" / "street_context_geo.json"
 VEHICLE_CLASS_IMAGE_PATH = ROOT / "assets" / "vehicle_classes_overview.png"
@@ -466,6 +467,14 @@ def load_literature_benchmark() -> dict:
         return {}
     with LITERATURE_BENCHMARK_PATH.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+@st.cache_data
+def load_local_study_rates() -> pd.DataFrame:
+    """Load the scenario-level conflict rates reported in the Berlin study's Table 4."""
+    if not LOCAL_STUDY_RATES_PATH.exists():
+        return pd.DataFrame()
+    return pd.read_csv(LOCAL_STUDY_RATES_PATH)
 
 
 @st.cache_data
@@ -4528,15 +4537,765 @@ def scenario_bar_chart(summary: pd.DataFrame, metric: str, label: str) -> alt.Ch
     )
 
 
+ENTRY_GAME_NAME = "Mobility Mix Lab"
+ENTRY_HEADWAY_PERSONAS = {
+    "0.6": {
+        "emoji": "🏎️",
+        "name": "Assertive",
+        "title": "The assertive network",
+        "description": "Vehicles travel with tighter spacing. The network feels quick and decisive, with less time between one vehicle and the next.",
+    },
+    "0.8": {
+        "emoji": "⚖️",
+        "name": "Balanced",
+        "title": "The balanced network",
+        "description": "Vehicles keep a middle-ground spacing: neither the closest nor the most cautious behaviour tested in this study.",
+    },
+    "1.0": {
+        "emoji": "🛡️",
+        "name": "Cautious",
+        "title": "The space-keeping network",
+        "description": "Vehicles leave more time between movements, creating the most cautious following behaviour tested in this study.",
+    },
+}
+ENTRY_MPR_PERSONAS = {
+    0: ("🚗", "Human-driven", "The familiar starting point: every vehicle is driven by a person."),
+    20: ("🌱", "Early adoption", "One in five vehicles is now autonomous."),
+    40: ("🚘", "Growing mixed fleet", "Human-driven and autonomous vehicles increasingly share the streets."),
+    60: ("⚡", "Autonomous majority", "Autonomous vehicles become the majority while human drivers remain important."),
+    80: ("🤖", "Highly autonomous", "Autonomous vehicles now shape most interactions across the network."),
+    100: ("✨", "Fully autonomous", "Every vehicle in this future is autonomous."),
+}
+
+
+def entry_scenarios_for_mpr(mpr_percent: int) -> list[int]:
+    """Return the tested fleet scenarios for one AV market-penetration level."""
+    return [
+        scenario_number
+        for scenario_number, composition in FLEET_COMPOSITIONS.items()
+        if composition["av"] == mpr_percent
+    ]
+
+
+def entry_published_sir(benchmark: dict, mpr_percent: int) -> tuple[str, float | None]:
+    """Calculate safety improvement with the published Figure 5 power model."""
+    if mpr_percent == 0:
+        return "Zero-AV baseline", 0.0
+    fit = benchmark.get("reported_best_fit", {})
+    coefficient = float(fit.get("coefficient", 0.462))
+    exponent = float(fit.get("exponent", 1.598))
+    intercept = float(fit.get("intercept", 0.012))
+    mpr_proportion = mpr_percent / 100
+    calculated_percent = (
+        coefficient * (mpr_proportion**exponent) + intercept
+    ) * 100
+    if mpr_percent == 100:
+        return "Power-model extrapolation", calculated_percent
+    return "Power-model calculation", calculated_percent
+
+
+def entry_local_study_result(
+    conflicts: pd.DataFrame,
+    scenario_number: int,
+    tau: str,
+) -> dict[str, float | int | str] | None:
+    """Return Table 4 first, with complete raw conflict tables as a fallback."""
+    study_rates = load_local_study_rates()
+    if not study_rates.empty:
+        baseline_rows = study_rates.loc[study_rates["scenario_number"].eq(1)]
+        scenario_rows = study_rates.loc[
+            study_rates["scenario_number"].eq(scenario_number)
+        ]
+        if not baseline_rows.empty and not scenario_rows.empty:
+            baseline = baseline_rows.iloc[0]
+            scenario = scenario_rows.iloc[0]
+            return {
+                "sir_percent": float(scenario["sir_total_percent"]),
+                "baseline_conflicts": int(
+                    baseline["total_conflicts_per_million_vkt"]
+                ),
+                "scenario_conflicts": int(
+                    scenario["total_conflicts_per_million_vkt"]
+                ),
+                "severe_conflicts": int(
+                    scenario["severe_conflicts_per_million_vkt"]
+                ),
+                "unit": "conflicts / million VKT",
+                "source": "Table 4",
+            }
+
+    if USING_DEMO_DATA:
+        return None
+    tau_df = conflicts[conflicts["tau"].astype(str).eq(str(tau))]
+    baseline_count = int(tau_df["scenario_number"].eq(1).sum())
+    scenario_count = int(tau_df["scenario_number"].eq(scenario_number).sum())
+    if baseline_count == 0:
+        return None
+    return {
+        "sir_percent": (baseline_count - scenario_count) / baseline_count * 100,
+        "baseline_conflicts": baseline_count,
+        "scenario_conflicts": scenario_count,
+        "unit": "conflict records",
+        "source": "complete conflict tables",
+    }
+
+
+def entry_round_heading(round_number: int, title: str, copy: str) -> None:
+    dots = "".join(
+        f'<span class="round-dot{" active" if dot == round_number else ""}"></span>'
+        for dot in range(1, 4)
+    )
+    st.markdown(
+        f"""
+        <div class="round-heading">
+            <div class="round-topline"><span>Round {round_number} of 3</span><div class="round-dots">{dots}</div></div>
+            <div class="round-title">{title}</div>
+            <div class="round-copy">{copy}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def entry_carousel_controls(
+    options: list,
+    state_key: str,
+    label: str,
+    card_html: str,
+) -> tuple[object, bool]:
+    """Render one central carousel card with bounded left/right controls."""
+    current = st.session_state.get(state_key, options[0])
+    if current not in options:
+        current = options[0]
+        st.session_state[state_key] = current
+    index = options.index(current)
+    left, centre, right = st.columns([0.72, 5.6, 0.72], vertical_alignment="center")
+    with left:
+        if st.button(
+            "‹",
+            key=f"{state_key}_previous",
+            disabled=index == 0,
+            help=f"Previous {label}",
+            width="stretch",
+        ):
+            st.session_state[state_key] = options[index - 1]
+            st.rerun()
+    with centre:
+        st.markdown(card_html, unsafe_allow_html=True)
+    with right:
+        if st.button(
+            "›",
+            key=f"{state_key}_next",
+            disabled=index == len(options) - 1,
+            help=f"Next {label}",
+            width="stretch",
+        ):
+            st.session_state[state_key] = options[index + 1]
+            st.rerun()
+    position_dots = "".join(
+        f'<span class="carousel-dot{" active" if dot == index else ""}"></span>'
+        for dot in range(len(options))
+    )
+    st.markdown(
+        f'<div class="carousel-position">{position_dots}<small>{index + 1} / {len(options)}</small></div>',
+        unsafe_allow_html=True,
+    )
+    return current, index < len(options) - 1
+
+
+def entry_mpr_carousel() -> int:
+    options = list(ENTRY_MPR_PERSONAS)
+    selected = int(st.session_state.setdefault("entry_mpr_choice", 40))
+    if selected not in options:
+        selected = 40
+        st.session_state["entry_mpr_choice"] = selected
+    icon, title, description = ENTRY_MPR_PERSONAS[selected]
+    automated_icons = max(1, selected // 20) if selected else 0
+    human_icons = 5 - automated_icons
+    fleet_icons = "".join(["<span>🤖</span>"] * automated_icons + ["<span>🚗</span>"] * human_icons)
+    card_html = f"""
+        <div class="carousel-card mpr-card mpr-{selected}">
+            <div class="carousel-eyebrow">Choose your future</div>
+            <div class="mpr-hero-avatar">{icon}</div>
+            <div class="carousel-big-number">{selected}<span>% autonomous</span></div>
+            <div class="carousel-card-title">{title}</div>
+            <div class="carousel-card-copy">{description}</div>
+            <div class="mini-fleet" aria-label="Fleet illustration">{fleet_icons}</div>
+        </div>
+    """
+    selected, _ = entry_carousel_controls(
+        options, "entry_mpr_choice", "autonomous-vehicle share", card_html
+    )
+    return int(selected)
+
+
+def entry_scenario_carousel(mpr_percent: int) -> int:
+    options = entry_scenarios_for_mpr(mpr_percent)
+    selected = int(st.session_state.setdefault("entry_scenario_choice", options[0]))
+    if selected not in options:
+        selected = options[0]
+        st.session_state["entry_scenario_choice"] = selected
+    composition = FLEET_COMPOSITIONS[selected]
+    card_html = f"""
+        <div class="carousel-card scenario-slide">
+            <div class="carousel-eyebrow">A tested {mpr_percent}% autonomous scenario</div>
+            <div class="scenario-orbit"><span class="orbit-hdv">🚗</span><span class="orbit-av12">⚡</span><span class="orbit-av46">🚐</span></div>
+            <div class="carousel-big-number">S{selected}</div>
+            <div class="carousel-card-title">Choose the vehicle mix</div>
+            <div class="mix-pills"><span>🚗 Human-driven <b>{composition['hdv']}%</b></span><span>⚡ Small autonomous <b>{composition['av12']}%</b></span><span>🚐 Large autonomous <b>{composition['av46']}%</b></span></div>
+            <div class="fleet-bar large"><span class="bar-hdv" style="width:{composition['hdv']}%"></span><span class="bar-av12" style="width:{composition['av12']}%"></span><span class="bar-av46" style="width:{composition['av46']}%"></span></div>
+        </div>
+    """
+    selected, _ = entry_carousel_controls(
+        options, "entry_scenario_choice", "vehicle-mix scenario", card_html
+    )
+    return int(selected)
+
+
+def entry_headway_carousel() -> str:
+    options = list(ENTRY_HEADWAY_PERSONAS)
+    selected = str(st.session_state.setdefault("entry_tau_choice", "0.8"))
+    if selected not in options:
+        selected = "0.8"
+        st.session_state["entry_tau_choice"] = selected
+    persona = ENTRY_HEADWAY_PERSONAS[selected]
+    road_gap = {"0.6": "tight", "0.8": "medium", "1.0": "wide"}[selected]
+    card_html = f"""
+        <div class="carousel-card behaviour-slide behaviour-{selected.replace('.', '')}">
+            <div class="carousel-eyebrow">Choose the network personality</div>
+            <div class="behaviour-avatar">{persona['emoji']}</div>
+            <div class="carousel-card-title">{persona['name']}</div>
+            <div class="carousel-big-number small">{selected}<span> seconds</span></div>
+            <div class="following-road {road_gap}"><span>🚗</span><i></i><span>🚙</span></div>
+            <div class="carousel-card-copy">{persona['description']}</div>
+        </div>
+    """
+    selected, _ = entry_carousel_controls(
+        options, "entry_tau_choice", "following behaviour", card_html
+    )
+    return str(selected)
+
+
+def entry_vehicle_cards(scenario_number: int) -> None:
+    composition = FLEET_COMPOSITIONS[scenario_number]
+    cards = [
+        ("🚗", "Human-driven", "Driven by a person", composition["hdv"]),
+        ("⚡", "Small autonomous", "1–2 passengers", composition["av12"]),
+        ("🚐", "Large autonomous", "4–6 passengers", composition["av46"]),
+    ]
+    columns = st.columns(3)
+    for column, (icon, label, description, share) in zip(columns, cards):
+        with column:
+            st.markdown(
+                f"""
+                <div class="vehicle-card">
+                    <div class="vehicle-icon">{icon}</div>
+                    <div class="vehicle-label">{label}</div>
+                    <div class="vehicle-share">{share}%</div>
+                    <div class="vehicle-description">{description}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+def open_research_view(view: str) -> None:
+    st.session_state["entry_portal_open"] = True
+    if view == "home":
+        st.session_state["view_navigation"] = "Research Home"
+    elif view == "overview":
+        st.session_state["view_navigation"] = "Overview"
+    elif view == "results":
+        st.session_state["view_navigation"] = "Results"
+        st.session_state["results_navigation"] = "Main analysis"
+    elif view == "hotspots":
+        st.session_state["view_navigation"] = "Results"
+        st.session_state["results_navigation"] = "Hotspot overview"
+        st.session_state["hotspot_default_view"] = "hotspot"
+    elif view == "3d":
+        st.session_state["view_navigation"] = "Results"
+        st.session_state["results_navigation"] = "Hotspot overview"
+        st.session_state["hotspot_default_view"] = "3d"
+    elif view == "scenario":
+        st.session_state["view_navigation"] = "Scenario Detail"
+    elif view == "amir":
+        st.session_state["view_navigation"] = "Ask Amir"
+
+
+def render_research_home() -> None:
+    """Offer a simple interactive doorway before showing dense research outputs."""
+    st.markdown(
+        """
+        <style>
+        .research-home-hero {border:1px solid #35545d;border-radius:26px;padding:1.5rem 1.6rem;
+            background:radial-gradient(circle at 85% 15%,rgba(99,223,201,.14),transparent 34%),
+            linear-gradient(125deg,#14262b,#11181d);margin:.7rem 0 1.25rem}
+        .research-home-kicker {font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+            font-weight:900;color:#72e1cf}.research-home-title{font-size:clamp(2rem,5vw,3.5rem);
+            font-weight:950;line-height:1.04;letter-spacing:-.045em;color:#f5faf9;margin:.35rem 0}
+        .research-home-copy{font-size:1rem;color:#b8c7cb;max-width:720px;line-height:1.5}
+        .research-path-card{min-height:165px;border:1px solid #34464d;border-radius:20px;padding:1.05rem 1.1rem;
+            background:linear-gradient(145deg,#182329,#11181d);margin:.2rem 0 .55rem}
+        .research-path-card.featured{border-color:#5e8f85;background:linear-gradient(145deg,#18302e,#11191c)}
+        .research-path-icon{font-size:2rem}.research-path-title{font-size:1.08rem;font-weight:900;color:#f2f7f6;margin:.35rem 0 .2rem}
+        .research-path-copy{font-size:.82rem;color:#9eb0b6;line-height:1.4}
+        </style>
+        <div class="research-home-hero">
+            <div class="research-home-kicker">Research explorer</div>
+            <div class="research-home-title">What would you like to investigate?</div>
+            <div class="research-home-copy">Choose one path. The detailed research opens only when you ask for it.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    overview, results, amir = st.columns(3)
+    with overview:
+        st.markdown(
+            '<div class="research-path-card"><div class="research-path-icon">🧭</div><div class="research-path-title">Study overview</div><div class="research-path-copy">Understand the study area, methods, vehicle types, and evidence.</div></div>',
+            unsafe_allow_html=True,
+        )
+        st.button(
+            "Open overview →",
+            key="research_home_overview",
+            width="stretch",
+            on_click=open_research_view,
+            args=("overview",),
+        )
+    with results:
+        st.markdown(
+            '<div class="research-path-card featured"><div class="research-path-icon">📊</div><div class="research-path-title">Explore results</div><div class="research-path-copy">Start with the main findings, comparisons, and literature benchmark.</div></div>',
+            unsafe_allow_html=True,
+        )
+        st.button(
+            "See the results →",
+            key="research_home_results",
+            type="primary",
+            width="stretch",
+            on_click=open_research_view,
+            args=("results",),
+        )
+    with amir:
+        st.markdown(
+            '<div class="research-path-card featured"><div class="research-path-icon">💬</div><div class="research-path-title">Ask Amir</div><div class="research-path-copy">Ask a plain-language question instead of searching through the dashboard.</div></div>',
+            unsafe_allow_html=True,
+        )
+        st.button(
+            "Ask Amir →",
+            key="research_home_amir",
+            type="primary",
+            width="stretch",
+            on_click=open_research_view,
+            args=("amir",),
+        )
+
+    scenario, hotspots = st.columns(2)
+    with scenario:
+        st.markdown(
+            '<div class="research-path-card"><div class="research-path-icon">🚦</div><div class="research-path-title">Scenario explorer</div><div class="research-path-copy">Choose one scenario and inspect its interactions and safety patterns.</div></div>',
+            unsafe_allow_html=True,
+        )
+        st.button(
+            "Choose a scenario →",
+            key="research_home_scenario",
+            width="stretch",
+            on_click=open_research_view,
+            args=("scenario",),
+        )
+    with hotspots:
+        st.markdown(
+            '<div class="research-path-card featured"><div class="research-path-icon">🗺️</div><div class="research-path-title">Hotspots & 3D Lens</div><div class="research-path-copy">Move through the network and inspect where simulated conflicts concentrate.</div></div>',
+            unsafe_allow_html=True,
+        )
+        st.button(
+            "Open the 3D Lens →",
+            key="research_home_3d",
+            type="primary",
+            width="stretch",
+            on_click=open_research_view,
+            args=("3d",),
+        )
+
+
+def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"] {display: none;}
+        .block-container {max-width: 1120px; padding-top: 3.35rem; padding-bottom: 3rem;}
+        .entry-kicker {font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: #63dfc9; font-weight: 800;}
+        .entry-title {font-size: clamp(2.5rem, 7vw, 5.4rem); line-height: .96; letter-spacing: -.055em; margin: .65rem 0 1rem; color: #f7f7f2; font-weight: 850;}
+        .entry-copy {font-size: 1.15rem; line-height: 1.65; max-width: 760px; color: #b8c4cc; margin-bottom: 1.4rem;}
+        .entry-rule {height: 1px; background: linear-gradient(90deg, #38cdb7, transparent); margin: 1rem 0 1.25rem;}
+        .step-heading {display:flex; align-items:center; gap:.8rem; border-radius:18px; padding:.8rem 1rem; margin:.2rem 0 1rem; border:1px solid #3f525d; background:linear-gradient(110deg,#1b252c,#121920);}
+        .step-1 {border-color:#8c4b41; background:linear-gradient(110deg,rgba(255,59,48,.18),#141b21 58%);}
+        .step-2 {border-color:#377269; background:linear-gradient(110deg,rgba(56,205,183,.17),#141b21 58%);}
+        .step-badge {white-space:nowrap; border-radius:999px; padding:.34rem .62rem; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; font-weight:900; color:#fff; background:#ff5147;}
+        .step-2 .step-badge {background:#159a88;}
+        .step-title {font-size:clamp(1.2rem,2.5vw,1.7rem); line-height:1.15; font-weight:900; color:#f7f7f2;}
+        .round-heading {max-width:820px;margin:.4rem auto 1.2rem;text-align:center;}
+        .round-topline {display:flex;justify-content:center;align-items:center;gap:.65rem;font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;font-weight:900;color:#63dfc9;}
+        .round-topline > span {padding:.3rem .58rem;border:1px solid #376b63;border-radius:999px;background:#122622;box-shadow:0 0 18px rgba(99,223,201,.08);}
+        .round-dots {display:flex;gap:.28rem}.round-dot {width:7px;height:7px;border-radius:50%;background:#405159}.round-dot.active{width:22px;border-radius:999px;background:#63dfc9;box-shadow:0 0 14px rgba(99,223,201,.45)}
+        .round-title {font-size:clamp(1.75rem,4vw,2.8rem);font-weight:950;letter-spacing:-.035em;color:#f7f7f2;margin:.35rem 0 .25rem;}
+        .round-copy {font-size:.95rem;line-height:1.5;color:#a9bac1;}
+        .carousel-card {position:relative;min-height:365px;border:1px solid #38525c;border-radius:30px;padding:1.45rem 1.7rem;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 20%,rgba(99,223,201,.13),transparent 38%),linear-gradient(145deg,#18272e,#10171d 70%);box-shadow:0 24px 60px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04);}
+        .carousel-card::before {content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.035) 50%,transparent 65%);transform:translateX(-100%);animation:cardShimmer 4.5s ease-in-out infinite;pointer-events:none;}
+        .carousel-eyebrow {font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#7be7d4;margin-bottom:.5rem;}
+        .carousel-big-number {font-size:clamp(3.2rem,8vw,5.7rem);font-weight:950;letter-spacing:-.065em;line-height:1;color:#f7f7f2;margin:.12rem 0;}
+        .carousel-big-number span {font-size:.22em;letter-spacing:.02em;color:#85e8d7;margin-left:.25rem;vertical-align:middle;}
+        .carousel-big-number.small {font-size:clamp(2.8rem,7vw,4.8rem);}
+        .carousel-card-title {font-size:clamp(1.25rem,3vw,1.8rem);font-weight:900;color:#edf8f6;margin:.25rem 0;}
+        .carousel-card-copy {max-width:580px;font-size:.92rem;line-height:1.5;color:#aebec5;}
+        .mpr-hero-avatar {font-size:4rem;line-height:1.1;animation:avatarBloom 2.2s cubic-bezier(.2,.8,.3,1) infinite alternate;filter:drop-shadow(0 12px 18px rgba(0,0,0,.28));}
+        .mpr-20 .mpr-hero-avatar {filter:drop-shadow(0 0 22px rgba(99,223,201,.55));}
+        .mini-fleet {display:flex;gap:.55rem;align-items:center;justify-content:center;margin-top:1.15rem;padding:.55rem .9rem;border-radius:999px;background:rgba(0,0,0,.2);}
+        .mini-fleet span {font-size:1.25rem;animation:fleetFloat 1.7s ease-in-out infinite alternate}.mini-fleet span:nth-child(2){animation-delay:.18s}.mini-fleet span:nth-child(3){animation-delay:.36s}.mini-fleet span:nth-child(4){animation-delay:.54s}.mini-fleet span:nth-child(5){animation-delay:.72s}
+        .carousel-position {display:flex;align-items:center;justify-content:center;gap:.34rem;margin:.7rem 0 .9rem}.carousel-dot{width:7px;height:7px;border-radius:50%;background:#43535a}.carousel-dot.active{width:20px;border-radius:999px;background:#ff665c}.carousel-position small{font-size:.68rem;color:#758991;margin-left:.3rem}
+        .scenario-orbit {position:relative;width:118px;height:55px;margin:.15rem auto .35rem}.scenario-orbit span{position:absolute;font-size:2rem;filter:drop-shadow(0 8px 12px rgba(0,0,0,.3))}.orbit-hdv{left:4px;top:12px;animation:orbitLeft 2.2s ease-in-out infinite alternate}.orbit-av12{left:44px;top:0;animation:orbitFloat 1.7s ease-in-out infinite}.orbit-av46{right:2px;top:14px;animation:orbitRight 2.2s ease-in-out infinite alternate}
+        .mix-pills {display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;margin:.75rem 0}.mix-pills span{border:1px solid #40545d;border-radius:999px;padding:.38rem .66rem;font-size:.77rem;color:#b9c6cb;background:rgba(255,255,255,.035)}.mix-pills b{color:#f5fbfa}
+        .fleet-bar.large {width:min(540px,92%);height:14px;box-shadow:0 0 0 1px rgba(255,255,255,.06);}
+        .behaviour-avatar {font-size:4.5rem;line-height:1.15;filter:drop-shadow(0 10px 18px rgba(0,0,0,.3))}.behaviour-06 .behaviour-avatar{animation:closeDrive 1.2s ease-in-out infinite alternate}.behaviour-08 .behaviour-avatar{animation:balancedFloat 2s ease-in-out infinite}.behaviour-10 .behaviour-avatar{animation:cautiousPulse 2.2s ease-in-out infinite}
+        .following-road {width:min(480px,90%);height:50px;display:flex;align-items:center;justify-content:center;margin:.5rem 0 .75rem;border-top:1px dashed #50626a;border-bottom:1px dashed #50626a}.following-road span{font-size:1.55rem}.following-road i{display:block;height:2px;background:linear-gradient(90deg,#ff746b,#63dfc9);position:relative}.following-road i::after{content:"↔";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font-style:normal;color:#dbe7e5;font-size:.9rem}.following-road.tight i{width:38px}.following-road.medium i{width:82px}.following-road.wide i{width:126px}
+        .selection-summary {border:1px solid #3d5e65;border-radius:25px;padding:1.2rem 1.35rem;background:linear-gradient(130deg,#17272c,#12191f);margin:.7rem 0 1rem;text-align:center}.selection-summary-title{font-size:clamp(1.6rem,4vw,2.5rem);font-weight:950;letter-spacing:-.035em;color:#f7f7f2}.selection-summary-copy{color:#aebec5;margin:.35rem 0 .85rem}.selection-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}.selection-chips span{border:1px solid #3f595f;border-radius:999px;padding:.45rem .72rem;color:#d9e5e3;background:rgba(255,255,255,.04);font-size:.82rem}
+        @keyframes cardShimmer {0%,55%{transform:translateX(-105%)}80%,100%{transform:translateX(105%)}}
+        @keyframes avatarBloom {from{transform:scale(.9) translateY(4px)}to{transform:scale(1.08) translateY(-3px)}}
+        @keyframes fleetFloat {from{transform:translateY(2px)}to{transform:translateY(-4px)}}
+        @keyframes orbitLeft {from{transform:translateX(-6px) rotate(-4deg)}to{transform:translateX(5px) rotate(2deg)}}
+        @keyframes orbitRight {from{transform:translateX(6px) rotate(4deg)}to{transform:translateX(-5px) rotate(-2deg)}}
+        @keyframes orbitFloat {0%,100%{transform:translateY(3px)}50%{transform:translateY(-6px)}}
+        .msi-stage {position: relative; height: 225px; overflow: hidden; border: 1px solid #263a42; border-radius: 26px; background: radial-gradient(circle at 50% 48%, rgba(99, 223, 201, .12), transparent 28%), linear-gradient(145deg, #141e25, #0d1117 68%); box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 20px 50px rgba(0,0,0,.2);}
+        .msi-road {position: absolute; left: 5%; right: 5%; top: 51%; height: 2px; background: repeating-linear-gradient(90deg, #52616a 0 38px, transparent 38px 60px); opacity: .65;}
+        .msi-road::before, .msi-road::after {content: ""; position: absolute; left: 0; right: 0; height: 1px; background: #26343c;}
+        .msi-road::before {top: -30px;} .msi-road::after {top: 30px;}
+        .msi-actor {position: absolute; top: 68px; display: flex; flex-direction: column; align-items: center; gap: .25rem; z-index: 3; opacity: 0;}
+        .msi-actor-word {font-size: .72rem; letter-spacing: .15em; font-weight: 850; color: #dbe7e6;}
+        .msi-car {font-size: 2.8rem; filter: drop-shadow(0 8px 14px rgba(0,0,0,.4));}
+        .msi-mobility {left: 4%; animation: mobilityApproach 3.8s cubic-bezier(.22,.8,.28,1) forwards;}
+        .msi-safety {right: 4%; animation: safetyApproach 3.8s cubic-bezier(.22,.8,.28,1) forwards;}
+        .msi-intelligence {position: absolute; left: 50%; top: 43px; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; align-items: center; opacity: 0; animation: intelligenceIntercept 3.8s ease-out forwards;}
+        .msi-shield {font-size: 3.4rem; filter: drop-shadow(0 0 24px rgba(99,223,201,.45));}
+        .msi-intelligence-word {padding: .28rem .55rem; border: 1px solid #63dfc9; border-radius: 999px; background: #102421; color: #8af4e1; font-size: .63rem; font-weight: 900; letter-spacing: .13em;}
+        .msi-pulse {position: absolute; left: 50%; top: 50%; width: 90px; height: 90px; border: 1px solid #63dfc9; border-radius: 50%; transform: translate(-50%,-50%) scale(.1); opacity: 0; animation: intelligencePulse 3.8s ease-out forwards;}
+        .msi-lockup {position: absolute; inset: 0; z-index: 7; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; transform: translateY(12px); animation: titleResolve 3.8s ease-out forwards;}
+        .msi-lockup-title {font-size: clamp(2rem, 5.4vw, 4rem); line-height: 1; letter-spacing: -.045em; font-weight: 900; color: #f7f7f2;}
+        .msi-lockup-title span {color: #63dfc9;}
+        @keyframes mobilityApproach {0%{left:4%;opacity:0} 9%{opacity:1} 43%{left:43%;opacity:1} 56%{left:43%;opacity:1} 70%{left:19%;opacity:1} 79%,100%{left:19%;opacity:0}}
+        @keyframes safetyApproach {0%{right:4%;opacity:0} 9%{opacity:1} 43%{right:43%;opacity:1} 56%{right:43%;opacity:1} 70%{right:19%;opacity:1} 79%,100%{right:19%;opacity:0}}
+        @keyframes intelligenceIntercept {0%,34%{opacity:0;transform:translate(-50%,-35px) scale(.35)} 44%{opacity:1;transform:translate(-50%,0) scale(1.12)} 64%{opacity:1;transform:translate(-50%,0) scale(1)} 77%,100%{opacity:0;transform:translate(-50%,0) scale(.9)}}
+        @keyframes intelligencePulse {0%,42%{opacity:0;transform:translate(-50%,-50%) scale(.1)} 49%{opacity:.8;transform:translate(-50%,-50%) scale(1)} 68%,100%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}}
+        @keyframes titleResolve {0%,75%{opacity:0;transform:translateY(12px)} 88%,100%{opacity:1;transform:translateY(0)}}
+        @media (prefers-reduced-motion: reduce) {.msi-actor,.msi-intelligence,.msi-pulse{display:none}.msi-lockup{animation:none;opacity:1;transform:none}}
+        .path-card {border: 1px solid #2b414a; border-radius: 22px; padding: 1rem 1.2rem; background: linear-gradient(145deg, #172229, #111820); min-height: 138px; margin-bottom: .6rem;}
+        .path-card.game {border-color: #386b64; background: linear-gradient(145deg, #16302d, #111b21);}
+        .path-icon {font-size: 2rem; margin-bottom: .35rem;}
+        .path-title {font-size: 1.2rem; font-weight: 850; color: #f7f7f2; margin-bottom: .35rem;}
+        .path-copy {font-size: .92rem; line-height: 1.45; color: #aab8c0;}
+        .vehicle-card {border: 1px solid #28534f; border-radius: 20px; padding: 1.1rem; background: linear-gradient(145deg, #172229, #10191f); min-height: 180px; box-shadow: 0 12px 30px rgba(0, 0, 0, .18);}
+        .vehicle-icon {font-size: 2rem; margin-bottom: .4rem;}
+        .vehicle-label {font-weight: 850; font-size: 1.15rem; color: #effaf8;}
+        .vehicle-share {font-size: 2rem; font-weight: 850; color: #63dfc9; line-height: 1.2; margin: .25rem 0;}
+        .vehicle-description {font-size: .84rem; color: #9fb1b8;}
+        .mpr-avatar {min-height:84px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25rem; border:1px solid #30434c; border-radius:16px; background:linear-gradient(145deg,#172229,#10171d); font-size:1.65rem; transition:transform .2s ease,border-color .2s ease;}
+        .mpr-avatar:hover {transform:translateY(-3px); border-color:#63dfc9;}
+        .mpr-avatar small {font-size:.68rem; color:#9dafb7; text-align:center;}
+        .scenario-choice {min-height:118px; border:1px solid #344852; border-radius:18px; padding:.85rem 1rem; background:linear-gradient(145deg,#172229,#10171d); transition:transform .2s ease,border-color .2s ease;}
+        .scenario-choice:hover {transform:translateY(-3px); border-color:#63dfc9;}
+        .scenario-choice.selected {border-color:#ff5c52; box-shadow:0 0 0 1px rgba(255,92,82,.25),0 12px 28px rgba(0,0,0,.22);}
+        .scenario-number {font-size:1.45rem; font-weight:900; color:#f7f7f2;}
+        .scenario-fleet {font-size:.83rem; color:#b8c6cc; margin:.4rem 0 .75rem;}
+        .fleet-bar {height:9px; display:flex; overflow:hidden; border-radius:999px; background:#26333a;}
+        .fleet-bar span {display:block;height:100%;}.bar-hdv{background:#89959d}.bar-av12{background:#63dfc9}.bar-av46{background:#ff8b5c}
+        .headway-choice {min-height:150px; border:1px solid #344852; border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:radial-gradient(circle at 50% 38%,rgba(99,223,201,.09),transparent 45%),linear-gradient(145deg,#172229,#10171d); transition:transform .2s ease,border-color .2s ease;}
+        .headway-choice:hover {transform:translateY(-4px); border-color:#63dfc9;}
+        .headway-choice.selected {border-color:#ff5c52; box-shadow:0 0 0 1px rgba(255,92,82,.25),0 12px 28px rgba(0,0,0,.22);}
+        .headway-choice-avatar {font-size:2.8rem; margin-bottom:.25rem;}
+        .headway-06 .headway-choice-avatar {animation:closeDrive 1.2s ease-in-out infinite alternate;}
+        .headway-08 .headway-choice-avatar {animation:balancedFloat 2s ease-in-out infinite;}
+        .headway-10 .headway-choice-avatar {animation:cautiousPulse 2.2s ease-in-out infinite;}
+        .headway-choice-name {font-size:1.08rem;font-weight:900;color:#f4f8f7}.headway-choice-time{font-size:.78rem;color:#98aab2;margin-top:.12rem}
+        @keyframes closeDrive {from{transform:translateX(-9px)}to{transform:translateX(9px)}}
+        @keyframes balancedFloat {0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+        @keyframes cautiousPulse {0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+        .headway-persona {display: flex; gap: 1rem; align-items: center; border: 1px solid #3e5c66; border-radius: 20px; padding: 1rem 1.2rem; background: linear-gradient(120deg, #17232a, #12191f); margin: .7rem 0 1.25rem;}
+        .headway-avatar {font-size: 2.6rem; min-width: 3.2rem; text-align: center;}
+        .headway-title {font-size: 1.05rem; font-weight: 850; color: #effaf8; margin-bottom: .18rem;}
+        .headway-copy {font-size: .9rem; line-height: 1.45; color: #a9bac1;}
+        .result-hero {padding: 1.3rem 1.4rem; border: 1px solid #386b64; border-radius: 22px; background: linear-gradient(120deg, #142a29, #292419); margin: 1rem 0 1.2rem; color: #dce8e6;}
+        .result-hero strong {color: #63dfc9;}
+        .sir-card {border:1px solid #3e746b;border-radius:24px;padding:1.35rem 1.5rem;background:radial-gradient(circle at 85% 20%,rgba(99,223,201,.16),transparent 30%),linear-gradient(125deg,#142a29,#1a1d20);margin:1rem 0 1.25rem;}
+        .sir-eyebrow {font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#79e8d5}.sir-value{font-size:clamp(3.2rem,8vw,6rem);line-height:1;font-weight:950;letter-spacing:-.06em;color:#f7f7f2;margin:.35rem 0}.sir-value span{color:#63dfc9}.sir-explanation{font-size:1rem;line-height:1.55;color:#c0ced1;max-width:780px}.sir-meter{height:12px;background:#26363b;border-radius:999px;overflow:hidden;margin:1.1rem 0 .35rem}.sir-meter span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff6b5f,#63dfc9)}.sir-scale{display:flex;justify-content:space-between;font-size:.7rem;color:#7f939b}.sir-comparison{margin-top:1rem;padding:.75rem 1rem;border-radius:14px;background:rgba(255,255,255,.04);color:#dce7e6}.sir-boundary{font-size:.78rem;color:#8fa1a8;margin-top:.7rem}
+        .safety-result-title {font-size:clamp(1.45rem,3.8vw,2.35rem);font-weight:950;letter-spacing:-.035em;color:#f5fbfa;margin-bottom:.2rem}.safety-result-context{font-size:.9rem;color:#9eb0b7;margin-bottom:.65rem}.safety-result-label{font-size:clamp(1.05rem,2.4vw,1.35rem);font-weight:850;color:#e5f2ef}.plain-boundary{font-size:.75rem;color:#84969d;margin-top:.8rem}.study-unavailable{font-size:clamp(1.8rem,4.5vw,3rem);font-weight:950;color:#d9e4e2;margin:.55rem 0 .35rem}.study-counts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.85rem 0}.study-counts span{border:1px solid #3d5c61;border-radius:12px;padding:.5rem .7rem;background:rgba(255,255,255,.035);color:#c5d3d2;font-size:.8rem}
+        .literature-card {border:1px solid #735e3b;border-radius:24px;padding:1.3rem 1.45rem;background:radial-gradient(circle at 92% 10%,rgba(255,190,92,.13),transparent 34%),linear-gradient(130deg,#242219,#161b20);margin:1rem 0 1.4rem;}
+        .literature-eyebrow {font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#ffc56f}.literature-title{font-size:clamp(1.55rem,3.5vw,2.3rem);font-weight:950;line-height:1.12;color:#f8f2e8;margin:.3rem 0 .55rem}.literature-copy{font-size:1rem;color:#d3cbbd;line-height:1.55}.literature-highlight{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:950;letter-spacing:-.045em;color:#ffc56f;line-height:1;margin:.8rem 0 .25rem}.literature-highlight span{font-size:.3em;letter-spacing:0;color:#e9deca;margin-left:.25rem}.literature-stats{display:flex;flex-wrap:wrap;gap:.55rem;margin:.85rem 0}.literature-stats span{border:1px solid #64583f;border-radius:13px;padding:.55rem .72rem;background:rgba(255,255,255,.035);color:#eee4d4;font-size:.82rem}.literature-note{font-size:.77rem;line-height:1.45;color:#938d83}
+        .source-comparison {border:1px solid #5a4f73;border-radius:20px;padding:1rem 1.2rem;background:linear-gradient(120deg,rgba(123,105,174,.17),rgba(255,255,255,.025));margin:-.2rem 0 1.25rem}.comparison-kicker{font-size:.69rem;letter-spacing:.13em;text-transform:uppercase;font-weight:900;color:#c8b8ff}.comparison-result{font-size:clamp(1.1rem,2.6vw,1.5rem);font-weight:850;color:#f0ecff;margin-top:.28rem}.comparison-copy{font-size:.82rem;color:#aaa1bd;margin-top:.28rem}
+        div.stButton > button[kind="primary"] {border-radius: 999px; min-height: 3.2rem; font-weight: 800;}
+        div.stButton > button[kind="secondary"] {border-radius: 14px; min-height: 3rem;}
+        @media (max-width: 700px) {.carousel-card{min-height:360px;padding:1.1rem}.mix-pills{gap:.25rem}.mix-pills span{font-size:.68rem}.round-title{font-size:1.7rem}.literature-stats span{width:100%;text-align:center}}
+        @media (prefers-reduced-motion: reduce) {.carousel-card::before,.mpr-hero-avatar,.mini-fleet span,.scenario-orbit span,.behaviour-avatar{animation:none!important}}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    stage = st.session_state.setdefault("entry_game_stage", "welcome")
+
+    if stage == "welcome":
+        st.markdown(
+            """
+            <div class="msi-stage" aria-label="Mobility and Safety approach; Intelligence intervenes and forms the Mobility Safety Intelligence title">
+                <div class="msi-road"></div>
+                <div class="msi-actor msi-mobility"><div class="msi-actor-word">MOBILITY</div><div class="msi-car">🚗</div></div>
+                <div class="msi-actor msi-safety"><div class="msi-actor-word">SAFETY</div><div class="msi-car">🚙</div></div>
+                <div class="msi-pulse"></div>
+                <div class="msi-intelligence"><div class="msi-shield">🛡️</div><div class="msi-intelligence-word">INTELLIGENCE</div></div>
+                <div class="msi-lockup">
+                    <div class="msi-lockup-title">Mobility <span>Safety</span> Intelligence</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown('<div class="entry-rule"></div>', unsafe_allow_html=True)
+        st.markdown("### Choose your path")
+        game_path, app_path = st.columns(2)
+        with game_path:
+            st.markdown(
+                f"""
+                <div class="path-card game">
+                    <div class="path-icon">🎮</div>
+                    <div class="path-title">Play {ENTRY_GAME_NAME}</div>
+                    <div class="path-copy">Choose a fleet and its following behaviour, then reveal one short safety result. No technical knowledge needed.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Start the game →", type="primary", width="stretch"):
+                st.session_state["entry_game_stage"] = "builder"
+                st.session_state["entry_builder_round"] = 1
+                st.rerun()
+        with app_path:
+            st.markdown(
+                """
+                <div class="path-card">
+                    <div class="path-icon">🔬</div>
+                    <div class="path-title">Open the research app</div>
+                    <div class="path-copy">Go directly to the methodology, complete results, hotspot maps, interaction analysis, and 3D network views.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Enter the app →", width="stretch"):
+                open_research_view("home")
+                st.rerun()
+        st.caption("The game and the research app use the same prepared SUMO evidence.")
+        return
+
+    if stage == "builder":
+        builder_round = int(st.session_state.setdefault("entry_builder_round", 1))
+        if builder_round == 1:
+            entry_round_heading(
+                1,
+                "How many vehicles are autonomous?",
+                "Move through six possible futures, then choose the one you want to explore.",
+            )
+            selected_mpr = entry_mpr_carousel()
+            back, choose = st.columns([1, 2.4])
+            if back.button("← Welcome", width="stretch"):
+                st.session_state["entry_game_stage"] = "welcome"
+                st.rerun()
+            if choose.button(
+                f"Choose {selected_mpr}% autonomous →", type="primary", width="stretch"
+            ):
+                scenario_options = entry_scenarios_for_mpr(selected_mpr)
+                if st.session_state.get("entry_scenario_choice") not in scenario_options:
+                    st.session_state["entry_scenario_choice"] = scenario_options[0]
+                st.session_state["entry_builder_round"] = 2
+                st.rerun()
+            return
+
+        selected_mpr = int(st.session_state.get("entry_mpr_choice", 40))
+        if builder_round == 2:
+            entry_round_heading(
+                2,
+                "Which fleet shares the road?",
+                "Use the arrows to compare the tested mixes available for your chosen future.",
+            )
+            selected_scenario = entry_scenario_carousel(selected_mpr)
+            back, choose = st.columns([1, 2.4])
+            if back.button("← Autonomous share", width="stretch"):
+                st.session_state["entry_builder_round"] = 1
+                st.rerun()
+            if choose.button(
+                f"Choose scenario S{selected_scenario} →",
+                type="primary",
+                width="stretch",
+            ):
+                st.session_state["entry_builder_round"] = 3
+                st.rerun()
+            return
+
+        selected_scenario = int(
+            st.session_state.get(
+                "entry_scenario_choice", entry_scenarios_for_mpr(selected_mpr)[0]
+            )
+        )
+        if builder_round == 3:
+            entry_round_heading(
+                3,
+                "How does the network behave?",
+                "Choose the personality created by the autonomous vehicles' following distance.",
+            )
+            selected_tau = entry_headway_carousel()
+            persona = ENTRY_HEADWAY_PERSONAS[selected_tau]
+            back, choose = st.columns([1, 2.4])
+            if back.button("← Vehicle mix", width="stretch"):
+                st.session_state["entry_builder_round"] = 2
+                st.rerun()
+            if choose.button(
+                f"Choose {persona['name']} →", type="primary", width="stretch"
+            ):
+                st.session_state["entry_builder_round"] = 4
+                st.rerun()
+            return
+
+        selected_tau = str(st.session_state.get("entry_tau_choice", "0.8"))
+        persona = ENTRY_HEADWAY_PERSONAS[selected_tau]
+        st.markdown(
+            f"""
+            <div class="selection-summary">
+                <div class="entry-kicker">Your mobility mix is ready</div>
+                <div class="selection-summary-title">S{selected_scenario} · {persona['emoji']} {persona['name']}</div>
+                <div class="selection-summary-copy">One quick reveal will show how much safer this kind of network could become.</div>
+                <div class="selection-chips"><span>{selected_mpr}% autonomous</span><span>Scenario S{selected_scenario}</span><span>{selected_tau} s following time</span></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        entry_vehicle_cards(selected_scenario)
+        back, run = st.columns([1, 2.4])
+        if back.button("← Behaviour", width="stretch"):
+            st.session_state["entry_builder_round"] = 3
+            st.rerun()
+        if run.button("See the safety improvement →", type="primary", width="stretch"):
+            st.session_state["entry_result_scenario"] = selected_scenario
+            st.session_state["entry_result_tau"] = selected_tau
+            st.session_state["entry_game_stage"] = "result"
+            st.rerun()
+        return
+
+    selected_scenario = int(st.session_state.get("entry_result_scenario", 4))
+    selected_tau = str(st.session_state.get("entry_result_tau", "0.8"))
+    composition = FLEET_COMPOSITIONS[selected_scenario]
+    _benchmark_label, benchmark_value = entry_published_sir(benchmark, composition["av"])
+    local_result = entry_local_study_result(conflicts, selected_scenario, selected_tau)
+
+    result_persona = ENTRY_HEADWAY_PERSONAS[selected_tau]
+    if local_result is None:
+        local_card_body = (
+            '<div class="study-unavailable">Study table not loaded</div>'
+            '<div class="sir-explanation">The public app contains only a small interface sample. '
+            "Add the complete conflict tables to calculate your Berlin-study result here.</div>"
+        )
+    else:
+        local_sir = float(local_result["sir_percent"])
+        if local_sir > 0:
+            local_display = f"+{local_sir:.1f}%"
+            local_label = "safer than the baseline"
+        elif local_sir < 0:
+            local_display = f"{local_sir:.1f}%"
+            local_label = "more conflicts than the baseline"
+        else:
+            local_display = "Baseline"
+            local_label = "0% autonomous-vehicle reference scenario"
+        local_card_body = (
+            f'<div class="sir-value"><span>{local_display}</span></div>'
+            f'<div class="safety-result-label">{local_label}</div>'
+        )
+    result_context = (
+        ""
+        if selected_scenario == 1
+        else f'<div class="safety-result-context">{composition["av"]}% autonomous vehicles</div>'
+    )
+    st.markdown(
+        f"""
+        <div class="sir-card">
+            <div class="sir-eyebrow">1 · Your study</div>
+            <div class="safety-result-title">Scenario S{selected_scenario}</div>
+            {result_context}
+            {local_card_body}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    benchmark_display = (
+        "Not available" if benchmark_value is None else f"{benchmark_value:.1f}%"
+    )
+
+    benchmark_note = (
+        '<div class="literature-note">Estimated beyond the studies\' 90% range.</div>'
+        if composition["av"] == 100
+        else ""
+    )
+    if selected_scenario != 1:
+        st.markdown(
+            f"""
+            <div class="literature-card">
+                <div class="literature-eyebrow">2 · 49-study benchmark</div>
+                <div class="literature-highlight">{benchmark_display}</div>
+                <div class="literature-title">benchmark improvement</div>
+                {benchmark_note}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    if local_result is None or benchmark_value is None:
+        comparison_result = "Comparison waiting for your Berlin-study table"
+        comparison_copy = (
+            "Once the complete conflict totals are available, this will show exactly how many "
+            "percentage points your scenario is above or below the 49-study benchmark."
+        )
+    else:
+        difference = float(local_result["sir_percent"]) - float(benchmark_value)
+        if difference >= 0:
+            comparison_result = (
+                f"{abs(difference):.1f} percentage points above the benchmark"
+            )
+        else:
+            comparison_result = (
+                f"{abs(difference):.1f} percentage points below the benchmark"
+            )
+        comparison_copy = (
+            f"Your scenario {float(local_result['sir_percent']):.1f}% · "
+            f"Benchmark {float(benchmark_value):.1f}%"
+        )
+    if selected_scenario != 1:
+        st.markdown(
+            f"""
+            <div class="source-comparison">
+                <div class="comparison-kicker">3 · Difference</div>
+                <div class="comparison-result">{comparison_result}</div>
+                <div class="comparison-copy">{comparison_copy}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    new_game, research_app = st.columns([2.2, 1])
+    if new_game.button("↻ Start a new game", type="primary", width="stretch"):
+        st.session_state["entry_game_stage"] = "builder"
+        st.session_state["entry_builder_round"] = 1
+        st.rerun()
+    if research_app.button("Open research app", width="stretch"):
+        open_research_view("home")
+        st.rerun()
+
+
 st.set_page_config(
     page_title="Mobility Safety Intelligence",
     page_icon=":bar_chart:",
     layout="wide",
-)
-
-st.title("Mobility Safety Intelligence")
-st.caption(
-    "Grounded dashboard for validated SUMO simulation outputs and TTC-based surrogate safety interpretation."
 )
 
 conflicts = load_conflicts()
@@ -4545,9 +5304,23 @@ academic_references = load_academic_references()
 manuscript_evidence = load_manuscript_evidence()
 literature_benchmark = load_literature_benchmark()
 
+if not st.session_state.get("entry_portal_open", False):
+    render_entry_game(conflicts, literature_benchmark)
+    st.stop()
+
+st.title("Mobility Safety Intelligence")
+st.caption(
+    "Explore the Berlin mobility-safety study, one question at a time."
+)
+if st.sidebar.button("← Scenario game", width="stretch"):
+    st.session_state["entry_portal_open"] = False
+    st.session_state["entry_game_stage"] = "welcome"
+    st.rerun()
+
 page_choice = st.sidebar.radio(
     "View",
-    ["Overview", "Results", "Scenario Detail", "Ask Amir"],
+    ["Research Home", "Overview", "Results", "Scenario Detail", "Ask Amir"],
+    key="view_navigation",
 )
 
 if page_choice == "Results":
@@ -4565,6 +5338,7 @@ if page_choice == "Results":
             "Hotspot overview",
             "Rankings",
         ],
+        key="results_navigation",
     )
     page = {
         "Main analysis": "Policy Brief",
@@ -4582,7 +5356,7 @@ else:
     page = "Policy Agent" if page_choice == "Ask Amir" else page_choice
 
 available_tau = sorted(conflicts["tau"].unique(), key=float)
-if page in {"Scenario Detail", "LightGBM + SHAP"}:
+if page in {"Research Home", "Policy Agent", "Scenario Detail", "LightGBM + SHAP"}:
     selected_tau_filter = available_tau
 else:
     selected_tau_filter = st.sidebar.multiselect(
@@ -4591,7 +5365,9 @@ else:
         default=available_tau,
     )
 
-if page == "LightGBM + SHAP":
+if page in {"Research Home", "Policy Agent"}:
+    ttc_threshold = 1.0
+elif page == "LightGBM + SHAP":
     ttc_threshold = 0.5
     st.sidebar.caption("Model classifier threshold: minTTC < 0.5 s")
 else:
@@ -4606,11 +5382,12 @@ else:
 ego_type_options = sorted(conflicts["ego_vtype"].dropna().unique(), key=vehicle_type_label)
 foe_type_options = sorted(conflicts["foe_vtype"].dropna().unique(), key=vehicle_type_label)
 conflict_type_options = sorted(conflicts["ego_conflict_type"].dropna().unique())
-if page == "LightGBM + SHAP":
+if page in {"Research Home", "Policy Agent", "LightGBM + SHAP"}:
     selected_ego_types = ego_type_options
     selected_foe_types = foe_type_options
     selected_conflict_types = conflict_type_options
-    st.sidebar.caption("Model input uses the complete selected headway dataset; interaction filters are disabled.")
+    if page == "LightGBM + SHAP":
+        st.sidebar.caption("Model input uses the complete selected headway dataset; interaction filters are disabled.")
 else:
     with st.sidebar.expander("Interaction filters", expanded=False):
         selected_ego_types = st.multiselect(
@@ -4645,16 +5422,20 @@ if filtered_conflicts.empty:
     st.warning("No conflict records match the current filters.")
     st.stop()
 
-render_sidebar_thesis_defense_amir(
-    page_choice,
-    results_output if page_choice == "Results" else None,
-    filtered_conflicts,
-    ttc_threshold,
-    notes,
-    academic_references,
-)
+if page != "Research Home":
+    render_sidebar_thesis_defense_amir(
+        page_choice,
+        results_output if page_choice == "Results" else None,
+        filtered_conflicts,
+        ttc_threshold,
+        notes,
+        academic_references,
+    )
 
-if page == "Overview":
+if page == "Research Home":
+    render_research_home()
+
+elif page == "Overview":
     severe_conflicts = filtered_conflicts[filtered_conflicts["minTTC"] <= ttc_threshold].copy()
     scenario_summary = build_scenario_summary(filtered_conflicts, ttc_threshold)
 
@@ -5048,7 +5829,7 @@ elif page == "Literature Benchmark":
             for method in literature_benchmark.get("methods", []):
                 st.markdown(f"- {method}")
             curve = literature_benchmark.get("reconstructed_display_curve", {})
-            with st.expander("Approximate display equation", expanded=False):
+            with st.expander("Published best-fit equation", expanded=False):
                 st.code(curve.get("formula", ""))
                 st.caption(curve.get("status", ""))
 
@@ -5773,13 +6554,22 @@ elif page == "Hotspot Overview":
     whole_network_street_cells, street_cell_bin_m, street_network_span_m = (
         build_whole_network_street_cells(filtered_conflicts, ttc_threshold)
     )
-    hotspot_tab, network_street_tab, network_3d_tab = st.tabs(
-        [
-            "Hotspot overview",
-            "Whole-network street lens",
-            "Whole-network 3D",
-        ]
-    )
+    if st.session_state.get("hotspot_default_view") == "3d":
+        network_3d_tab, hotspot_tab, network_street_tab = st.tabs(
+            [
+                "🏙️ Whole-network 3D · Featured",
+                "Hotspot overview",
+                "Whole-network street lens",
+            ]
+        )
+    else:
+        hotspot_tab, network_street_tab, network_3d_tab = st.tabs(
+            [
+                "Hotspot overview",
+                "Whole-network street lens",
+                "🏙️ Whole-network 3D · Featured",
+            ]
+        )
 
     with hotspot_tab:
         st.markdown("#### Hotspot overview · exact street locations")

@@ -40,12 +40,19 @@
   "reported_best_fit": {
     "family": "Power",
     "r_squared": 0.9928,
+    "formula": "SIR = 0.462 × MPR^1.598 + 0.012",
+    "coefficient": 0.462,
+    "exponent": 1.598,
+    "intercept": 0.012,
+    "input_scale": "MPR expressed as a proportion from 0 to 1",
+    "output_scale": "SIR expressed as a proportion from 0 to 1",
+    "source_location": "Figure 5",
     "interpretation": "The paper reports that the power form fits the refined MPR-SIR relationship better than the tested linear and exponential alternatives."
   },
   "reconstructed_display_curve": {
-    "formula": "SIR (%) approximately equals 0.0494 x MPR (%)^1.4879",
-    "r_squared_against_rounded_points": 0.992,
-    "status": "Dashboard display guide reconstructed from the nine rounded, sensitivity-adjusted values published in the article; it is not presented as the paper's exact printed coefficient equation."
+    "formula": "SIR = 0.462 × MPR^1.598 + 0.012",
+    "r_squared": 0.9928,
+    "status": "Best-fit power equation reproduced from Figure 5 of the published article. MPR and SIR are entered as proportions from 0 to 1."
   },
   "surrogate_measure_distribution": [
     {"group": "TTC family (TTC, TET, TIT)", "share_percent": 64},
@@ -69,7 +76,7 @@
     "Cite the DOI for every substantive benchmark answer.",
     "Keep literature evidence separate from Berlin dashboard evidence.",
     "Use only the nine published adjusted MPR-SIR points for exact benchmark values.",
-    "Describe the reconstructed curve as an approximate display guide, not the exact published equation."
+    "Use the Figure 5 power equation for model-calculated values and distinguish them from the nine published adjusted points."
   ],
   "chunks": [
     {
