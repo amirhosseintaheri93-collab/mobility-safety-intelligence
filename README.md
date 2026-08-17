@@ -2,6 +2,8 @@
 
 An interactive research application for turning microscopic SUMO conflict outputs into interpretable traffic-safety evidence.
 
+**Live demonstrator:** [mobility-safety-intelligence.streamlit.app](https://mobility-safety-intelligence.streamlit.app/)
+
 The project was developed by **Amirhossein Taheri** as part of his PhD research at Technische Universitaet Berlin. It combines surrogate-safety analysis, spatial hotspot exploration, explainable machine learning, and interactive network visualisation. The application is an offline analytical layer over prepared SUMO outputs; it is not a live traffic digital twin and does not predict observed crashes.
 
 ## What the software does
@@ -63,7 +65,7 @@ python -m pip install -r requirements.txt
 streamlit run app/dashboard.py
 ```
 
-The application will normally open at `http://localhost:8501`.
+The local application will normally open at `http://localhost:8501`. The public demonstrator is available at [mobility-safety-intelligence.streamlit.app](https://mobility-safety-intelligence.streamlit.app/).
 
 ### Public demonstrator data
 
