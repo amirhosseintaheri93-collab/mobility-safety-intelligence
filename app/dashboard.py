@@ -43,6 +43,17 @@ LOCAL_STUDY_RATES_PATH = ROOT / "data" / "local_study_conflict_rates.csv"
 HOTSPOT_DIR = ROOT / "data" / "hotspot_maps"
 STREET_CONTEXT_PATH = ROOT / "data" / "street_context_geo.json"
 VEHICLE_CLASS_IMAGE_PATH = ROOT / "assets" / "vehicle_classes_overview.png"
+AUDIO_DIR = ROOT / "assets" / "audio"
+SOUNDTRACK_OPTIONS = {
+    "Off": None,
+    "Acoustic setar-inspired": AUDIO_DIR / "setar-inspired-acoustic.wav",
+    "Electronic setar-inspired": AUDIO_DIR / "setar-inspired-electronic.wav",
+}
+GAME_SOUND_PATHS = {
+    "select": AUDIO_DIR / "ui-select.wav",
+    "whoosh": AUDIO_DIR / "ui-whoosh.wav",
+    "reveal": AUDIO_DIR / "ui-reveal.wav",
+}
 MODEL_CACHE_DIR = ROOT / "model_cache"
 LIGHT_STREET_MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 TRAFFIC_SIGNAL_ICON_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(
@@ -76,6 +87,58 @@ MAP_TOOLTIP_STYLE = {
 def map_tooltip() -> dict[str, object]:
     """Keep map descriptions readable inside embedded and narrow map frames."""
     return {"text": "{tooltip}", "style": MAP_TOOLTIP_STYLE.copy()}
+
+
+@st.cache_data(show_spinner=False)
+def audio_bytes(path_text: str) -> bytes:
+    """Load a small local audio asset once per Streamlit process."""
+    return Path(path_text).read_bytes()
+
+
+def render_sound_controls(container: object) -> None:
+    """Offer quiet, optional music and independently controlled game sounds."""
+    choice = container.selectbox(
+        "Background music",
+        list(SOUNDTRACK_OPTIONS),
+        key="background_music_choice",
+        help="Music is off by default. Both loops are original setar-inspired sound sketches.",
+    )
+    container.toggle(
+        "Game clicks and reveals",
+        value=False,
+        key="game_sounds_enabled",
+        help="Adds brief, low-volume sounds to the scenario game only.",
+    )
+    soundtrack = SOUNDTRACK_OPTIONS[choice]
+    if soundtrack is not None and soundtrack.exists():
+        container.audio(
+            audio_bytes(str(soundtrack)),
+            format="audio/wav",
+            autoplay=True,
+            loop=True,
+        )
+        container.caption("Original audio made for this app · pause anytime")
+
+
+def queue_game_sound(name: str) -> None:
+    """Queue one short effect for the next rerun when game sounds are enabled."""
+    if st.session_state.get("game_sounds_enabled", False):
+        st.session_state["pending_game_sound"] = name
+
+
+def render_pending_game_sound() -> None:
+    """Play a queued effect without adding another visible media control."""
+    name = st.session_state.pop("pending_game_sound", None)
+    path = GAME_SOUND_PATHS.get(str(name))
+    if not st.session_state.get("game_sounds_enabled", False) or path is None:
+        return
+    if not path.exists():
+        return
+    encoded = base64.b64encode(audio_bytes(str(path))).decode("ascii")
+    st.html(
+        f'<audio autoplay style="display:none"><source src="data:audio/wav;base64,{encoded}" type="audio/wav"></audio>',
+        width="content",
+    )
 
 NET_OFFSET_X = -369461.94
 NET_OFFSET_Y = -5798955.14
@@ -4679,6 +4742,7 @@ def entry_carousel_controls(
             width="stretch",
         ):
             st.session_state[state_key] = options[index - 1]
+            queue_game_sound("select")
             st.rerun()
     with centre:
         st.markdown(card_html, unsafe_allow_html=True)
@@ -4691,6 +4755,7 @@ def entry_carousel_controls(
             width="stretch",
         ):
             st.session_state[state_key] = options[index + 1]
+            queue_game_sound("select")
             st.rerun()
     position_dots = "".join(
         f'<span class="carousel-dot{" active" if dot == index else ""}"></span>'
@@ -5037,6 +5102,9 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         """,
         unsafe_allow_html=True,
     )
+    with st.expander("♪ Sound (optional)", expanded=False):
+        render_sound_controls(st)
+    render_pending_game_sound()
     stage = st.session_state.setdefault("entry_game_stage", "welcome")
 
     if stage == "welcome":
@@ -5072,6 +5140,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             if st.button("Start the game →", type="primary", width="stretch"):
                 st.session_state["entry_game_stage"] = "builder"
                 st.session_state["entry_builder_round"] = 1
+                queue_game_sound("whoosh")
                 st.rerun()
         with app_path:
             st.markdown(
@@ -5086,6 +5155,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             )
             if st.button("Enter the app →", width="stretch"):
                 open_research_view("home")
+                queue_game_sound("whoosh")
                 st.rerun()
         st.caption("The game and the research app use the same prepared SUMO evidence.")
         return
@@ -5102,6 +5172,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             back, choose = st.columns([1, 2.4])
             if back.button("← Welcome", width="stretch"):
                 st.session_state["entry_game_stage"] = "welcome"
+                queue_game_sound("select")
                 st.rerun()
             if choose.button(
                 f"Choose {selected_mpr}% autonomous →", type="primary", width="stretch"
@@ -5110,6 +5181,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
                 if st.session_state.get("entry_scenario_choice") not in scenario_options:
                     st.session_state["entry_scenario_choice"] = scenario_options[0]
                 st.session_state["entry_builder_round"] = 2
+                queue_game_sound("whoosh")
                 st.rerun()
             return
 
@@ -5124,6 +5196,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             back, choose = st.columns([1, 2.4])
             if back.button("← Autonomous share", width="stretch"):
                 st.session_state["entry_builder_round"] = 1
+                queue_game_sound("select")
                 st.rerun()
             if choose.button(
                 f"Choose scenario S{selected_scenario} →",
@@ -5131,6 +5204,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
                 width="stretch",
             ):
                 st.session_state["entry_builder_round"] = 3
+                queue_game_sound("whoosh")
                 st.rerun()
             return
 
@@ -5150,11 +5224,13 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             back, choose = st.columns([1, 2.4])
             if back.button("← Vehicle mix", width="stretch"):
                 st.session_state["entry_builder_round"] = 2
+                queue_game_sound("select")
                 st.rerun()
             if choose.button(
                 f"Choose {persona['name']} →", type="primary", width="stretch"
             ):
                 st.session_state["entry_builder_round"] = 4
+                queue_game_sound("whoosh")
                 st.rerun()
             return
 
@@ -5175,11 +5251,13 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         back, run = st.columns([1, 2.4])
         if back.button("← Behaviour", width="stretch"):
             st.session_state["entry_builder_round"] = 3
+            queue_game_sound("select")
             st.rerun()
         if run.button("See the simulated conflict result →", type="primary", width="stretch"):
             st.session_state["entry_result_scenario"] = selected_scenario
             st.session_state["entry_result_tau"] = selected_tau
             st.session_state["entry_game_stage"] = "result"
+            queue_game_sound("reveal")
             st.rerun()
         return
 
@@ -5288,9 +5366,11 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
     if new_game.button("↻ Start a new game", type="primary", width="stretch"):
         st.session_state["entry_game_stage"] = "builder"
         st.session_state["entry_builder_round"] = 1
+        queue_game_sound("whoosh")
         st.rerun()
     if research_app.button("Open research app", width="stretch"):
         open_research_view("home")
+        queue_game_sound("whoosh")
         st.rerun()
 
 
@@ -5314,9 +5394,13 @@ st.title("Mobility Safety Intelligence")
 st.caption(
     "Explore the Berlin mobility-safety study, one question at a time."
 )
+render_pending_game_sound()
+with st.sidebar.expander("♪ Sound (optional)", expanded=False):
+    render_sound_controls(st.sidebar)
 if st.sidebar.button("← Scenario game", width="stretch"):
     st.session_state["entry_portal_open"] = False
     st.session_state["entry_game_stage"] = "welcome"
+    queue_game_sound("whoosh")
     st.rerun()
 
 page_choice = st.sidebar.radio(

@@ -1,6 +1,7 @@
 import json
 import unittest
 from pathlib import Path
+import wave
 
 import pandas as pd
 
@@ -127,6 +128,29 @@ class ReleaseTests(unittest.TestCase):
             "TTC-based surrogate evidence from prepared simulations; not observed crashes or a causal safety effect.",
             dashboard,
         )
+
+    def test_original_audio_assets_are_valid_and_optional(self) -> None:
+        audio_dir = ROOT / "assets" / "audio"
+        expected = {
+            "setar-inspired-acoustic.wav": 10.0,
+            "setar-inspired-electronic.wav": 10.0,
+            "ui-select.wav": 0.1,
+            "ui-whoosh.wav": 0.3,
+            "ui-reveal.wav": 0.5,
+        }
+        for name, minimum_seconds in expected.items():
+            path = audio_dir / name
+            self.assertTrue(path.exists(), name)
+            with wave.open(str(path), "rb") as audio:
+                self.assertEqual(audio.getnchannels(), 1, name)
+                self.assertEqual(audio.getsampwidth(), 2, name)
+                duration = audio.getnframes() / audio.getframerate()
+                self.assertGreaterEqual(duration, minimum_seconds, name)
+
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        self.assertIn('"Off": None', dashboard)
+        self.assertIn("Game clicks and reveals", dashboard)
+        self.assertIn("Original audio made for this app", dashboard)
 
 
 if __name__ == "__main__":

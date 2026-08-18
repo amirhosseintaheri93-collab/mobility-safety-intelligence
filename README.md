@@ -18,6 +18,7 @@ The project was developed by **Amirhossein Taheri** as part of his PhD research 
 - Uses SHAP to describe predictive associations while explicitly avoiding causal claims.
 - Adds an interactive, DOI-linked literature benchmark from Taheri et al. (2026), with the published sensitivity-adjusted MPR-SIR points kept separate from the Berlin SUMO outputs.
 - Provides a grounded research assistant that uses prepared evidence and references, with optional server-side OpenAI synthesis.
+- Includes optional original acoustic and electronic setar-inspired sound sketches, plus restrained game-interface sounds. Music and effects are independently controlled and off by default.
 
 ## From data to output
 
@@ -98,6 +99,18 @@ The script prepares regression and selected short-TTC classification artifacts f
 - all headways together.
 
 Visitor sessions load the resulting artifacts and never retrain the models.
+
+## Original audio
+
+The app's music and interface sounds are generated locally by
+`scripts/generate_audio_assets.py`. They are original synthetic assets—not sampled
+recordings and not reproductions of an existing composition or performer. The loops
+are described as **setar-inspired sound sketches**, rather than authentic traditional
+performances. Regenerate them with:
+
+```powershell
+python scripts/generate_audio_assets.py
+```
 
 ## Optional OpenAI synthesis
 
