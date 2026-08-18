@@ -35,7 +35,6 @@ except ModuleNotFoundError:  # Supports direct execution from the app directory.
 
 
 ROOT = Path(__file__).resolve().parents[1]
-AMIR_GUIDE_AVATAR = ROOT / "assets" / "amir-research-guide-v1.png"
 NOTES_PATH = ROOT / "llm" / "policy_notes_by_scenario.json"
 REFERENCES_PATH = ROOT / "llm" / "academic_references.json"
 MANUSCRIPT_EVIDENCE_PATH = ROOT / "llm" / "manuscript_evidence.json"
@@ -6061,17 +6060,12 @@ elif page == "Policy Brief":
     )
 
 elif page == "Policy Agent":
-    guide_intro, guide_portrait = st.columns([4.2, 1])
-    with guide_intro:
-        st.subheader("Ask Amir")
-        st.write("Choose a guided question or ask Amir in your own words.")
-        st.caption(
-            "Amir is an evidence-grounded research guide. Answers should cite the study materials "
-            "and distinguish prepared simulation evidence from broader interpretation."
-        )
-    with guide_portrait:
-        st.image(str(AMIR_GUIDE_AVATAR), width=150)
-        st.caption("Amir · research guide")
+    st.subheader("Ask Amir 🤖")
+    st.write("Choose a guided question or ask Amir in your own words.")
+    st.caption(
+        "Amir is an evidence-grounded research guide. Answers should cite the study materials "
+        "and distinguish prepared simulation evidence from broader interpretation."
+    )
 
     active_manuscript_evidence = manuscript_evidence
     selected_model = get_default_openai_model()
@@ -6142,9 +6136,7 @@ elif page == "Policy Agent":
                 st.rerun()
 
         for message in st.session_state.policy_agent_messages:
-            message_avatar = (
-                str(AMIR_GUIDE_AVATAR) if message["role"] == "assistant" else None
-            )
+            message_avatar = "🤖" if message["role"] == "assistant" else None
             with st.chat_message(message["role"], avatar=message_avatar):
                 st.markdown(message["content"])
 

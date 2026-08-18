@@ -72,11 +72,6 @@ class ReleaseTests(unittest.TestCase):
         ]
         self.assertFalse(any(path.exists() for path in forbidden))
 
-    def test_amir_research_guide_avatar_is_packaged(self) -> None:
-        avatar = ROOT / "assets" / "amir-research-guide-v1.png"
-        self.assertTrue(avatar.exists())
-        self.assertGreater(avatar.stat().st_size, 100_000)
-
     def test_literature_benchmark_is_attributed_and_bounded(self) -> None:
         benchmark = json.loads(
             (ROOT / "llm" / "literature_benchmark.json").read_text(encoding="utf-8")
