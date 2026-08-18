@@ -5165,7 +5165,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             <div class="selection-summary">
                 <div class="entry-kicker">Your mobility mix is ready</div>
                 <div class="selection-summary-title">S{selected_scenario} · {persona['emoji']} {persona['name']}</div>
-                <div class="selection-summary-copy">One quick reveal will show how much safer this kind of network could become.</div>
+                <div class="selection-summary-copy">One quick reveal will show the simulated conflict change for this tested network configuration.</div>
                 <div class="selection-chips"><span>{selected_mpr}% autonomous</span><span>Scenario S{selected_scenario}</span><span>{selected_tau} s following time</span></div>
             </div>
             """,
@@ -5176,7 +5176,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         if back.button("← Behaviour", width="stretch"):
             st.session_state["entry_builder_round"] = 3
             st.rerun()
-        if run.button("See the safety improvement →", type="primary", width="stretch"):
+        if run.button("See the simulated conflict result →", type="primary", width="stretch"):
             st.session_state["entry_result_scenario"] = selected_scenario
             st.session_state["entry_result_tau"] = selected_tau
             st.session_state["entry_game_stage"] = "result"
@@ -5200,10 +5200,10 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         local_sir = float(local_result["sir_percent"])
         if local_sir > 0:
             local_display = f"+{local_sir:.1f}%"
-            local_label = "safer than the baseline"
+            local_label = "lower simulated conflict rate than the baseline"
         elif local_sir < 0:
             local_display = f"{local_sir:.1f}%"
-            local_label = "more conflicts than the baseline"
+            local_label = "higher simulated conflict rate than the baseline"
         else:
             local_display = "Baseline"
             local_label = "0% autonomous-vehicle reference scenario"
@@ -5219,10 +5219,11 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
     st.markdown(
         f"""
         <div class="sir-card">
-            <div class="sir-eyebrow">1 · Your study</div>
+            <div class="sir-eyebrow">1 · Berlin simulation</div>
             <div class="safety-result-title">Scenario S{selected_scenario}</div>
             {result_context}
             {local_card_body}
+            <div class="plain-boundary">TTC-based surrogate evidence from prepared simulations; not observed crashes or a causal safety effect.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -5241,10 +5242,11 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         st.markdown(
             f"""
             <div class="literature-card">
-                <div class="literature-eyebrow">2 · 49-study benchmark</div>
+                <div class="literature-eyebrow">2 · Published 49-study context</div>
                 <div class="literature-highlight">{benchmark_display}</div>
-                <div class="literature-title">benchmark improvement</div>
+                <div class="literature-title">published SIR benchmark</div>
                 {benchmark_note}
+                <div class="literature-note">Separate cross-study evidence shown for context only; it does not validate the Berlin simulation.</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -5276,7 +5278,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             <div class="source-comparison">
                 <div class="comparison-kicker">3 · Difference</div>
                 <div class="comparison-result">{comparison_result}</div>
-                <div class="comparison-copy">{comparison_copy}</div>
+                <div class="comparison-copy">{comparison_copy} · Descriptive comparison only; the two evidence sources are not equivalent.</div>
             </div>
             """,
             unsafe_allow_html=True,

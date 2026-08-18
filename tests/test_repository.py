@@ -115,6 +115,19 @@ class ReleaseTests(unittest.TestCase):
             check_names=False,
         )
 
+    def test_entry_game_uses_bounded_surrogate_safety_language(self) -> None:
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        for overclaim in (
+            "how much safer this kind of network could become",
+            "See the safety improvement",
+            "safer than the baseline",
+        ):
+            self.assertNotIn(overclaim, dashboard)
+        self.assertIn(
+            "TTC-based surrogate evidence from prepared simulations; not observed crashes or a causal safety effect.",
+            dashboard,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
