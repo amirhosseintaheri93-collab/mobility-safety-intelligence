@@ -44,12 +44,7 @@ HOTSPOT_DIR = ROOT / "data" / "hotspot_maps"
 STREET_CONTEXT_PATH = ROOT / "data" / "street_context_geo.json"
 VEHICLE_CLASS_IMAGE_PATH = ROOT / "assets" / "vehicle_classes_overview.png"
 AUDIO_DIR = ROOT / "assets" / "audio"
-SOUNDTRACK_OPTIONS = {
-    "Off": None,
-    "Acoustic setar-inspired": AUDIO_DIR / "setar-inspired-acoustic.wav",
-    "Electronic setar-inspired": AUDIO_DIR / "setar-inspired-electronic.wav",
-}
-GAME_SOUND_PATHS = {
+UI_SOUND_PATHS = {
     "select": AUDIO_DIR / "ui-select.wav",
     "whoosh": AUDIO_DIR / "ui-whoosh.wav",
     "reveal": AUDIO_DIR / "ui-reveal.wav",
@@ -95,42 +90,37 @@ def audio_bytes(path_text: str) -> bytes:
     return Path(path_text).read_bytes()
 
 
-def render_sound_controls(container: object) -> None:
-    """Offer quiet, optional music and independently controlled game sounds."""
-    choice = container.selectbox(
-        "Background music",
-        list(SOUNDTRACK_OPTIONS),
-        key="background_music_choice",
-        help="Music is off by default. Both loops are original setar-inspired sound sketches.",
-    )
-    container.toggle(
-        "Game clicks and reveals",
-        value=False,
-        key="game_sounds_enabled",
-        help="Adds brief, low-volume sounds to the scenario game only.",
-    )
-    soundtrack = SOUNDTRACK_OPTIONS[choice]
-    if soundtrack is not None and soundtrack.exists():
-        container.audio(
-            audio_bytes(str(soundtrack)),
-            format="audio/wav",
-            autoplay=True,
-            loop=True,
-        )
-        container.caption("Original audio made for this app · pause anytime")
+def render_sound_button(container: object, key_prefix: str) -> None:
+    """Render one compact mute/unmute button for interface feedback sounds."""
+    enabled = bool(st.session_state.get("ui_sounds_enabled", False))
+    if container.button(
+        "🔊" if enabled else "🔇",
+        key=f"{key_prefix}_sound_button",
+        help=(
+            "Mute interface sounds"
+            if enabled
+            else "Turn on interface sounds"
+        ),
+    ):
+        st.session_state["ui_sounds_enabled"] = not enabled
+        if enabled:
+            st.session_state.pop("pending_ui_sound", None)
+        else:
+            st.session_state["pending_ui_sound"] = "select"
+        st.rerun()
 
 
-def queue_game_sound(name: str) -> None:
-    """Queue one short effect for the next rerun when game sounds are enabled."""
-    if st.session_state.get("game_sounds_enabled", False):
-        st.session_state["pending_game_sound"] = name
+def queue_ui_sound(name: str) -> None:
+    """Queue one short effect for the next rerun when UI sounds are enabled."""
+    if st.session_state.get("ui_sounds_enabled", False):
+        st.session_state["pending_ui_sound"] = name
 
 
-def render_pending_game_sound() -> None:
+def render_pending_ui_sound() -> None:
     """Play a queued effect without adding another visible media control."""
-    name = st.session_state.pop("pending_game_sound", None)
-    path = GAME_SOUND_PATHS.get(str(name))
-    if not st.session_state.get("game_sounds_enabled", False) or path is None:
+    name = st.session_state.pop("pending_ui_sound", None)
+    path = UI_SOUND_PATHS.get(str(name))
+    if not st.session_state.get("ui_sounds_enabled", False) or path is None:
         return
     if not path.exists():
         return
@@ -139,6 +129,16 @@ def render_pending_game_sound() -> None:
         f'<audio autoplay style="display:none"><source src="data:audio/wav;base64,{encoded}" type="audio/wav"></audio>',
         width="content",
     )
+
+
+# Compatibility wrappers keep the existing game flow concise while the same
+# feedback system now serves the research interface as well.
+def queue_game_sound(name: str) -> None:
+    queue_ui_sound(name)
+
+
+def render_pending_game_sound() -> None:
+    render_pending_ui_sound()
 
 NET_OFFSET_X = -369461.94
 NET_OFFSET_Y = -5798955.14
@@ -4641,9 +4641,12 @@ def entry_scenarios_for_mpr(mpr_percent: int) -> list[int]:
 
 
 def entry_published_sir(benchmark: dict, mpr_percent: int) -> tuple[str, float | None]:
-    """Calculate safety improvement with the published Figure 5 power model."""
+    """Return an exact published point, using the Figure 5 model only when needed."""
     if mpr_percent == 0:
         return "Zero-AV baseline", 0.0
+    for point in benchmark.get("published_adjusted_points", []):
+        if int(point.get("mpr_percent", -1)) == mpr_percent:
+            return "Published adjusted point", float(point["sir_percent"])
     fit = benchmark.get("reported_best_fit", {})
     coefficient = float(fit.get("coefficient", 0.462))
     exponent = float(fit.get("exponent", 1.598))
@@ -4652,9 +4655,7 @@ def entry_published_sir(benchmark: dict, mpr_percent: int) -> tuple[str, float |
     calculated_percent = (
         coefficient * (mpr_proportion**exponent) + intercept
     ) * 100
-    if mpr_percent == 100:
-        return "Power-model extrapolation", calculated_percent
-    return "Power-model calculation", calculated_percent
+    return "Power-model extrapolation", calculated_percent
 
 
 def entry_local_study_result(
@@ -4685,6 +4686,7 @@ def entry_local_study_result(
                 ),
                 "unit": "conflicts / million VKT",
                 "source": "Table 4",
+                "scope": "all tested headways combined",
             }
 
     if USING_DEMO_DATA:
@@ -4700,6 +4702,7 @@ def entry_local_study_result(
         "scenario_conflicts": scenario_count,
         "unit": "conflict records",
         "source": "complete conflict tables",
+        "scope": f"{tau} s headway",
     }
 
 
@@ -4864,27 +4867,94 @@ def entry_vehicle_cards(scenario_number: int) -> None:
             )
 
 
+def current_research_route() -> dict[str, str]:
+    """Return the current research page and, when relevant, result subsection."""
+    return {
+        "view": st.session_state.get("view_navigation", "Research Home"),
+        "results": st.session_state.get("results_navigation", "Main analysis"),
+    }
+
+
+def remember_research_route(target: dict[str, str]) -> None:
+    """Add the current route to a short browser-like history before navigating."""
+    current = st.session_state.get("research_active_route")
+    if current and current != target:
+        history = st.session_state.setdefault("research_nav_history", [])
+        if not history or history[-1] != current:
+            history.append(dict(current))
+        del history[:-20]
+    st.session_state["research_active_route"] = dict(target)
+
+
+def set_research_route(view: str, results: str | None = None, *, remember: bool = True) -> None:
+    """Navigate to one research route while optionally preserving the prior route."""
+    target = {
+        "view": view,
+        "results": results or st.session_state.get("results_navigation", "Main analysis"),
+    }
+    if remember:
+        remember_research_route(target)
+    else:
+        st.session_state["research_active_route"] = dict(target)
+    st.session_state["view_navigation"] = target["view"]
+    st.session_state["results_navigation"] = target["results"]
+
+
+def on_research_page_change() -> None:
+    """Track navigation performed with the research agenda radio control."""
+    remember_research_route(current_research_route())
+    queue_ui_sound("select")
+
+
+def on_research_result_change() -> None:
+    """Track navigation between result subsections."""
+    remember_research_route(current_research_route())
+    queue_ui_sound("select")
+
+
+def go_back_research_route() -> None:
+    """Return to the preceding page or result subsection."""
+    history = st.session_state.get("research_nav_history", [])
+    if not history:
+        return
+    target = history.pop()
+    st.session_state["research_nav_history"] = history
+    set_research_route(
+        target.get("view", "Research Home"),
+        target.get("results", "Main analysis"),
+        remember=False,
+    )
+    queue_ui_sound("whoosh")
+
+
 def open_research_view(view: str) -> None:
+    was_open = bool(st.session_state.get("entry_portal_open", False))
     st.session_state["entry_portal_open"] = True
-    if view == "home":
-        st.session_state["view_navigation"] = "Research Home"
-    elif view == "overview":
-        st.session_state["view_navigation"] = "Overview"
-    elif view == "results":
-        st.session_state["view_navigation"] = "Results"
-        st.session_state["results_navigation"] = "Main analysis"
-    elif view == "hotspots":
-        st.session_state["view_navigation"] = "Results"
-        st.session_state["results_navigation"] = "Hotspot overview"
+    targets = {
+        "home": ("Research Home", None),
+        "overview": ("Overview", None),
+        "results": ("Results", "Main analysis"),
+        "hotspots": ("Results", "Hotspot overview"),
+        "3d": ("Results", "Hotspot overview"),
+        "scenario": ("Scenario Detail", None),
+        "amir": ("Ask Amir", None),
+    }
+    target_view, target_results = targets.get(view, ("Research Home", None))
+    if not was_open:
+        st.session_state["research_nav_history"] = []
+    set_research_route(target_view, target_results, remember=was_open)
+    if view == "hotspots":
         st.session_state["hotspot_default_view"] = "hotspot"
     elif view == "3d":
-        st.session_state["view_navigation"] = "Results"
-        st.session_state["results_navigation"] = "Hotspot overview"
         st.session_state["hotspot_default_view"] = "3d"
-    elif view == "scenario":
-        st.session_state["view_navigation"] = "Scenario Detail"
-    elif view == "amir":
-        st.session_state["view_navigation"] = "Ask Amir"
+    queue_ui_sound("whoosh")
+
+
+def open_entry_game() -> None:
+    """Return from the research interface to the game welcome screen."""
+    st.session_state["entry_portal_open"] = False
+    st.session_state["entry_game_stage"] = "welcome"
+    queue_ui_sound("whoosh")
 
 
 def render_research_home() -> None:
@@ -4899,11 +4969,11 @@ def render_research_home() -> None:
             font-weight:900;color:#72e1cf}.research-home-title{font-size:clamp(2rem,5vw,3.5rem);
             font-weight:950;line-height:1.04;letter-spacing:-.045em;color:#f5faf9;margin:.35rem 0}
         .research-home-copy{font-size:1rem;color:#b8c7cb;max-width:720px;line-height:1.5}
-        .research-path-card{min-height:165px;border:1px solid #34464d;border-radius:20px;padding:1.05rem 1.1rem;
+        .research-path-card{height:198px;box-sizing:border-box;border:1px solid #34464d;border-radius:20px;padding:1.05rem 1.1rem;
             background:linear-gradient(145deg,#182329,#11181d);margin:.2rem 0 .55rem}
-        .research-path-card.featured{border-color:#5e8f85;background:linear-gradient(145deg,#18302e,#11191c)}
         .research-path-icon{font-size:2rem}.research-path-title{font-size:1.08rem;font-weight:900;color:#f2f7f6;margin:.35rem 0 .2rem}
         .research-path-copy{font-size:.82rem;color:#9eb0b6;line-height:1.4}
+        @media (max-width:700px){.research-path-card{height:auto;min-height:168px}}
         </style>
         <div class="research-home-hero">
             <div class="research-home-kicker">Research explorer</div>
@@ -4923,13 +4993,14 @@ def render_research_home() -> None:
         st.button(
             "Open overview →",
             key="research_home_overview",
+            type="primary",
             width="stretch",
             on_click=open_research_view,
             args=("overview",),
         )
     with results:
         st.markdown(
-            '<div class="research-path-card featured"><div class="research-path-icon">📊</div><div class="research-path-title">Explore results</div><div class="research-path-copy">Start with the main findings, comparisons, and literature benchmark.</div></div>',
+            '<div class="research-path-card"><div class="research-path-icon">📊</div><div class="research-path-title">Explore results</div><div class="research-path-copy">Start with the main findings, comparisons, and literature benchmark.</div></div>',
             unsafe_allow_html=True,
         )
         st.button(
@@ -4942,7 +5013,7 @@ def render_research_home() -> None:
         )
     with amir:
         st.markdown(
-            '<div class="research-path-card featured"><div class="research-path-icon">💬</div><div class="research-path-title">Ask Amir</div><div class="research-path-copy">Ask a plain-language question instead of searching through the dashboard.</div></div>',
+            '<div class="research-path-card"><div class="research-path-icon">💬</div><div class="research-path-title">Ask Amir</div><div class="research-path-copy">Ask a plain-language question instead of searching through the dashboard.</div></div>',
             unsafe_allow_html=True,
         )
         st.button(
@@ -4963,13 +5034,14 @@ def render_research_home() -> None:
         st.button(
             "Choose a scenario →",
             key="research_home_scenario",
+            type="primary",
             width="stretch",
             on_click=open_research_view,
             args=("scenario",),
         )
     with hotspots:
         st.markdown(
-            '<div class="research-path-card featured"><div class="research-path-icon">🗺️</div><div class="research-path-title">Hotspots & 3D Lens</div><div class="research-path-copy">Move through the network and inspect where simulated conflicts concentrate.</div></div>',
+            '<div class="research-path-card"><div class="research-path-icon">🗺️</div><div class="research-path-title">Hotspots & 3D Lens</div><div class="research-path-copy">Move through the network and inspect where simulated conflicts concentrate.</div></div>',
             unsafe_allow_html=True,
         )
         st.button(
@@ -5051,7 +5123,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         @keyframes intelligencePulse {0%,42%{opacity:0;transform:translate(-50%,-50%) scale(.1)} 49%{opacity:.8;transform:translate(-50%,-50%) scale(1)} 68%,100%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}}
         @keyframes titleResolve {0%,75%{opacity:0;transform:translateY(12px)} 88%,100%{opacity:1;transform:translateY(0)}}
         @media (prefers-reduced-motion: reduce) {.msi-actor,.msi-intelligence,.msi-pulse{display:none}.msi-lockup{animation:none;opacity:1;transform:none}}
-        .path-card {border: 1px solid #2b414a; border-radius: 22px; padding: 1rem 1.2rem; background: linear-gradient(145deg, #172229, #111820); min-height: 138px; margin-bottom: .6rem;}
+        .path-card {border: 1px solid #2b414a; border-radius: 22px; padding: 1rem 1.2rem; background: linear-gradient(145deg, #172229, #111820); height: 190px; box-sizing: border-box; margin-bottom: .6rem;}
         .path-card.game {border-color: #386b64; background: linear-gradient(145deg, #16302d, #111b21);}
         .path-icon {font-size: 2rem; margin-bottom: .35rem;}
         .path-title {font-size: 1.2rem; font-weight: 850; color: #f7f7f2; margin-bottom: .35rem;}
@@ -5094,16 +5166,16 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         .literature-card {border:1px solid #735e3b;border-radius:24px;padding:1.3rem 1.45rem;background:radial-gradient(circle at 92% 10%,rgba(255,190,92,.13),transparent 34%),linear-gradient(130deg,#242219,#161b20);margin:1rem 0 1.4rem;}
         .literature-eyebrow {font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#ffc56f}.literature-title{font-size:clamp(1.55rem,3.5vw,2.3rem);font-weight:950;line-height:1.12;color:#f8f2e8;margin:.3rem 0 .55rem}.literature-copy{font-size:1rem;color:#d3cbbd;line-height:1.55}.literature-highlight{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:950;letter-spacing:-.045em;color:#ffc56f;line-height:1;margin:.8rem 0 .25rem}.literature-highlight span{font-size:.3em;letter-spacing:0;color:#e9deca;margin-left:.25rem}.literature-stats{display:flex;flex-wrap:wrap;gap:.55rem;margin:.85rem 0}.literature-stats span{border:1px solid #64583f;border-radius:13px;padding:.55rem .72rem;background:rgba(255,255,255,.035);color:#eee4d4;font-size:.82rem}.literature-note{font-size:.77rem;line-height:1.45;color:#938d83}
         .source-comparison {border:1px solid #5a4f73;border-radius:20px;padding:1rem 1.2rem;background:linear-gradient(120deg,rgba(123,105,174,.17),rgba(255,255,255,.025));margin:-.2rem 0 1.25rem}.comparison-kicker{font-size:.69rem;letter-spacing:.13em;text-transform:uppercase;font-weight:900;color:#c8b8ff}.comparison-result{font-size:clamp(1.1rem,2.6vw,1.5rem);font-weight:850;color:#f0ecff;margin-top:.28rem}.comparison-copy{font-size:.82rem;color:#aaa1bd;margin-top:.28rem}
+        .game-action-spacer {height:.7rem;}
         div.stButton > button[kind="primary"] {border-radius: 999px; min-height: 3.2rem; font-weight: 800;}
         div.stButton > button[kind="secondary"] {border-radius: 14px; min-height: 3rem;}
-        @media (max-width: 700px) {.carousel-card{min-height:360px;padding:1.1rem}.mix-pills{gap:.25rem}.mix-pills span{font-size:.68rem}.round-title{font-size:1.7rem}.literature-stats span{width:100%;text-align:center}}
+        @media (max-width: 700px) {.path-card{height:auto;min-height:168px}.carousel-card{min-height:360px;padding:1.1rem}.mix-pills{gap:.25rem}.mix-pills span{font-size:.68rem}.round-title{font-size:1.7rem}.literature-stats span{width:100%;text-align:center}}
         @media (prefers-reduced-motion: reduce) {.carousel-card::before,.mpr-hero-avatar,.mini-fleet span,.scenario-orbit span,.behaviour-avatar{animation:none!important}}
         </style>
         """,
         unsafe_allow_html=True,
     )
-    with st.expander("♪ Sound (optional)", expanded=False):
-        render_sound_controls(st)
+    render_sound_button(st, "entry")
     render_pending_game_sound()
     stage = st.session_state.setdefault("entry_game_stage", "welcome")
 
@@ -5241,13 +5313,14 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             <div class="selection-summary">
                 <div class="entry-kicker">Your mobility mix is ready</div>
                 <div class="selection-summary-title">S{selected_scenario} · {persona['emoji']} {persona['name']}</div>
-                <div class="selection-summary-copy">One quick reveal will show the simulated conflict change for this tested network configuration.</div>
+                <div class="selection-summary-copy">One quick reveal will show the prepared conflict-rate result for this fleet scenario. The result card states whether its source is headway-specific or pooled.</div>
                 <div class="selection-chips"><span>{selected_mpr}% autonomous</span><span>Scenario S{selected_scenario}</span><span>{selected_tau} s following time</span></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         entry_vehicle_cards(selected_scenario)
+        st.markdown('<div class="game-action-spacer"></div>', unsafe_allow_html=True)
         back, run = st.columns([1, 2.4])
         if back.button("← Behaviour", width="stretch"):
             st.session_state["entry_builder_round"] = 3
@@ -5264,7 +5337,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
     selected_scenario = int(st.session_state.get("entry_result_scenario", 4))
     selected_tau = str(st.session_state.get("entry_result_tau", "0.8"))
     composition = FLEET_COMPOSITIONS[selected_scenario]
-    _benchmark_label, benchmark_value = entry_published_sir(benchmark, composition["av"])
+    benchmark_label, benchmark_value = entry_published_sir(benchmark, composition["av"])
     local_result = entry_local_study_result(conflicts, selected_scenario, selected_tau)
 
     result_persona = ENTRY_HEADWAY_PERSONAS[selected_tau]
@@ -5289,10 +5362,20 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             f'<div class="sir-value"><span>{local_display}</span></div>'
             f'<div class="safety-result-label">{local_label}</div>'
         )
+    result_scope = (
+        "prepared study scope"
+        if local_result is None
+        else str(local_result.get("scope", "prepared study scope"))
+    )
+    result_context_parts = [result_scope]
+    if selected_scenario != 1:
+        result_context_parts.insert(0, f'{composition["av"]}% autonomous vehicles')
+    if result_scope == "all tested headways combined":
+        result_context_parts.append(
+            f"your {selected_tau} s choice is available in the detailed research views"
+        )
     result_context = (
-        ""
-        if selected_scenario == 1
-        else f'<div class="safety-result-context">{composition["av"]}% autonomous vehicles</div>'
+        f'<div class="safety-result-context">{" · ".join(result_context_parts)}</div>'
     )
     st.markdown(
         f"""
@@ -5308,25 +5391,27 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
     )
 
     benchmark_display = (
-        "Not available" if benchmark_value is None else f"{benchmark_value:.1f}%"
+        "Not available" if benchmark_value is None else f"{benchmark_value:+.1f}%"
     )
-
+    benchmark_title = (
+        "published benchmark"
+        if benchmark_label == "Published adjusted point"
+        else "estimated benchmark"
+    )
     benchmark_note = (
-        '<div class="literature-note">Estimated beyond the studies\' 90% range.</div>'
-        if composition["av"] == 100
-        else ""
+        "Estimated beyond the published studies’ 90% range."
+        if benchmark_label == "Power-model extrapolation"
+        else "Value reported by the published review of 49 studies."
     )
     if selected_scenario != 1:
         st.markdown(
-            f"""
-            <div class="literature-card">
-                <div class="literature-eyebrow">2 · Published 49-study context</div>
-                <div class="literature-highlight">{benchmark_display}</div>
-                <div class="literature-title">published SIR benchmark</div>
-                {benchmark_note}
-                <div class="literature-note">Separate cross-study evidence shown for context only; it does not validate the Berlin simulation.</div>
-            </div>
-            """,
+            f'<div class="literature-card">'
+            f'<div class="literature-eyebrow">2 · What previous studies suggest</div>'
+            f'<div class="literature-highlight">{benchmark_display}</div>'
+            f'<div class="literature-title">{benchmark_title}</div>'
+            f'<div class="literature-note">{benchmark_note}</div>'
+            '<div class="literature-note">Shown for context only; it does not validate the Berlin simulation.</div>'
+            '</div>',
             unsafe_allow_html=True,
         )
 
@@ -5338,17 +5423,18 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         )
     else:
         difference = float(local_result["sir_percent"]) - float(benchmark_value)
-        if difference >= 0:
-            comparison_result = (
-                f"{abs(difference):.1f} percentage points above the benchmark"
-            )
+        if difference > 0:
+            comparison_result = f"↑ +{abs(difference):.1f}%"
+            comparison_direction = "above the benchmark"
+        elif difference < 0:
+            comparison_result = f"↓ −{abs(difference):.1f}%"
+            comparison_direction = "below the benchmark"
         else:
-            comparison_result = (
-                f"{abs(difference):.1f} percentage points below the benchmark"
-            )
+            comparison_result = "↔ 0.0%"
+            comparison_direction = "the same displayed value as the benchmark"
         comparison_copy = (
-            f"Your scenario {float(local_result['sir_percent']):.1f}% · "
-            f"Benchmark {float(benchmark_value):.1f}%"
+            f"{comparison_direction} · Your scenario {float(local_result['sir_percent']):+.1f}% · "
+            f"Benchmark {float(benchmark_value):+.1f}%"
         )
     if selected_scenario != 1:
         st.markdown(
@@ -5356,7 +5442,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
             <div class="source-comparison">
                 <div class="comparison-kicker">3 · Difference</div>
                 <div class="comparison-result">{comparison_result}</div>
-                <div class="comparison-copy">{comparison_copy} · Descriptive comparison only; the two evidence sources are not equivalent.</div>
+                <div class="comparison-copy">{comparison_copy} · For comparison only—the two numbers come from different kinds of evidence.</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -5395,23 +5481,75 @@ st.caption(
     "Explore the Berlin mobility-safety study, one question at a time."
 )
 render_pending_game_sound()
-with st.sidebar.expander("♪ Sound (optional)", expanded=False):
-    render_sound_controls(st.sidebar)
-if st.sidebar.button("← Scenario game", width="stretch"):
-    st.session_state["entry_portal_open"] = False
-    st.session_state["entry_game_stage"] = "welcome"
-    queue_game_sound("whoosh")
-    st.rerun()
+if "research_active_route" not in st.session_state:
+    st.session_state["research_active_route"] = current_research_route()
+if "research_nav_history" not in st.session_state:
+    st.session_state["research_nav_history"] = []
+
+back_shortcut, game_shortcut, sound_shortcut = st.sidebar.columns(
+    [1, 4, 1], vertical_alignment="center"
+)
+back_shortcut.button(
+    "←",
+    key="research_history_back",
+    help="Back to the previous page or result",
+    disabled=not bool(st.session_state["research_nav_history"]),
+    on_click=go_back_research_route,
+)
+game_shortcut.button(
+    "🎮 Mobility Mix Lab",
+    type="primary",
+    width="stretch",
+    on_click=open_entry_game,
+)
+render_sound_button(sound_shortcut, "research")
+st.sidebar.divider()
+st.sidebar.markdown("### Research agenda")
+
+research_navigation = [
+    "Research Home",
+    "Overview",
+    "Results",
+    "Scenario Detail",
+    "Ask Amir",
+]
+research_navigation_icons = {
+    "Research Home": "🏠",
+    "Overview": "🧭",
+    "Results": "📊",
+    "Scenario Detail": "🚦",
+    "Ask Amir": "💬",
+}
 
 page_choice = st.sidebar.radio(
-    "View",
-    ["Research Home", "Overview", "Results", "Scenario Detail", "Ask Amir"],
+    "Research agenda",
+    research_navigation,
     key="view_navigation",
+    format_func=lambda option: f"{research_navigation_icons[option]}  {option}",
+    label_visibility="collapsed",
+    on_change=on_research_page_change,
+)
+agenda_position = research_navigation.index(page_choice) + 1
+st.sidebar.progress(agenda_position / len(research_navigation))
+st.sidebar.caption(
+    f"{agenda_position} of {len(research_navigation)} · {research_navigation_icons[page_choice]} {page_choice}"
 )
 
 if page_choice == "Results":
+    result_navigation_icons = {
+        "Main analysis": "📌",
+        "Literature benchmark": "📚",
+        "LightGBM + SHAP": "🤖",
+        "Headway sensitivity": "↔️",
+        "Scenario comparison": "⚖️",
+        "Who conflicts with whom": "🤝",
+        "Ego vehicle contribution": "🚗",
+        "Speed and kinematics": "⚡",
+        "Hotspot overview": "🗺️",
+        "Rankings": "🏆",
+    }
     results_output = st.sidebar.radio(
-        "Results output",
+        "Explore results",
         [
             "Main analysis",
             "Literature benchmark",
@@ -5425,6 +5563,8 @@ if page_choice == "Results":
             "Rankings",
         ],
         key="results_navigation",
+        format_func=lambda option: f"{result_navigation_icons[option]}  {option}",
+        on_change=on_research_result_change,
     )
     page = {
         "Main analysis": "Policy Brief",
@@ -5449,6 +5589,8 @@ else:
         "Tau values",
         available_tau,
         default=available_tau,
+        on_change=queue_ui_sound,
+        args=("select",),
     )
 
 if page in {"Research Home", "Policy Agent"}:
@@ -5463,6 +5605,8 @@ else:
         max_value=1.0,
         value=1.0,
         step=0.1,
+        on_change=queue_ui_sound,
+        args=("select",),
     )
 
 ego_type_options = sorted(conflicts["ego_vtype"].dropna().unique(), key=vehicle_type_label)
@@ -5481,6 +5625,8 @@ else:
             ego_type_options,
             default=ego_type_options,
             format_func=vehicle_type_label,
+            on_change=queue_ui_sound,
+            args=("select",),
         )
 
         selected_foe_types = st.multiselect(
@@ -5488,6 +5634,8 @@ else:
             foe_type_options,
             default=foe_type_options,
             format_func=vehicle_type_label,
+            on_change=queue_ui_sound,
+            args=("select",),
         )
 
         selected_conflict_types = st.multiselect(
@@ -5495,6 +5643,8 @@ else:
             conflict_type_options,
             default=conflict_type_options,
             format_func=conflict_type_label,
+            on_change=queue_ui_sound,
+            args=("select",),
         )
 
 filtered_conflicts = conflicts[conflicts["tau"].isin(selected_tau_filter)].copy()

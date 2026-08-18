@@ -4,7 +4,7 @@ The MIT License in this repository applies to the source code only.
 
 ## CC BY 4.0 research materials
 
-The demonstrator dataset in `data/demo_conflicts.csv`, original prepared model artifacts in `model_cache/`, original research interpretation material, and original synthetic audio in `assets/audio/` are released under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+The demonstrator dataset in `data/demo_conflicts.csv`, original prepared model artifacts in `model_cache/`, original research interpretation material, and original synthetic interface effects in `assets/audio/` are released under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
 Required attribution:
 

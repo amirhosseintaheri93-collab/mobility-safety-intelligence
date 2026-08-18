@@ -129,11 +129,9 @@ class ReleaseTests(unittest.TestCase):
             dashboard,
         )
 
-    def test_original_audio_assets_are_valid_and_optional(self) -> None:
+    def test_interface_audio_assets_are_valid_and_optional(self) -> None:
         audio_dir = ROOT / "assets" / "audio"
         expected = {
-            "setar-inspired-acoustic.wav": 10.0,
-            "setar-inspired-electronic.wav": 10.0,
             "ui-select.wav": 0.1,
             "ui-whoosh.wav": 0.3,
             "ui-reveal.wav": 0.5,
@@ -148,9 +146,68 @@ class ReleaseTests(unittest.TestCase):
                 self.assertGreaterEqual(duration, minimum_seconds, name)
 
         dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
-        self.assertIn('"Off": None', dashboard)
-        self.assertIn("Game clicks and reveals", dashboard)
-        self.assertIn("Original audio made for this app", dashboard)
+        self.assertNotIn("setar-inspired", dashboard.lower())
+        self.assertNotIn("Background music", dashboard)
+        self.assertIn('"🔊" if enabled else "🔇"', dashboard)
+        self.assertIn('st.session_state["ui_sounds_enabled"] = not enabled', dashboard)
+
+    def test_game_discloses_when_results_are_pooled_across_headways(self) -> None:
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        self.assertIn('"scope": "all tested headways combined"', dashboard)
+        self.assertIn(
+            "The result card states whether its source is headway-specific or pooled.",
+            dashboard,
+        )
+
+    def test_entry_path_cards_keep_desktop_actions_aligned(self) -> None:
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        self.assertIn(".path-card {", dashboard)
+        self.assertIn("height: 190px; box-sizing: border-box", dashboard)
+        self.assertIn(".path-card{height:auto;min-height:168px}", dashboard)
+
+    def test_research_home_cards_keep_desktop_actions_aligned(self) -> None:
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        self.assertIn(".research-path-card{height:198px;box-sizing:border-box", dashboard)
+        self.assertIn(
+            "@media (max-width:700px){.research-path-card{height:auto;min-height:168px}}",
+            dashboard,
+        )
+
+    def test_research_navigation_is_consistent_and_contextual(self) -> None:
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        for key in (
+            "research_home_overview",
+            "research_home_results",
+            "research_home_amir",
+            "research_home_scenario",
+            "research_home_3d",
+        ):
+            key_position = dashboard.index(f'key="{key}"')
+            nearby = dashboard[key_position : key_position + 150]
+            self.assertIn('type="primary"', nearby, key)
+        self.assertNotIn("research-path-card featured", dashboard)
+        self.assertIn('"🎮 Mobility Mix Lab"', dashboard)
+        self.assertIn('st.sidebar.markdown("### Research agenda")', dashboard)
+        self.assertIn('key="research_history_back"', dashboard)
+        self.assertIn("go_back_research_route", dashboard)
+        self.assertIn("research_nav_history", dashboard)
+        self.assertNotIn('"← Back to Research Home"', dashboard)
+        self.assertIn("research_navigation_icons", dashboard)
+        self.assertIn("result_navigation_icons", dashboard)
+
+    def test_game_uses_exact_published_benchmark_points_before_curve_values(self) -> None:
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        self.assertIn('return "Published adjusted point", float(point["sir_percent"])', dashboard)
+        self.assertIn("Value reported by the published review of 49 studies.", dashboard)
+        self.assertIn('else "estimated benchmark"', dashboard)
+        self.assertNotIn('"Figure 5 power-model extrapolation"', dashboard)
+
+    def test_game_uses_friendly_signed_benchmark_comparison(self) -> None:
+        dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
+        self.assertIn('comparison_result = f"↑ +{abs(difference):.1f}%"', dashboard)
+        self.assertIn('comparison_result = f"↓ −{abs(difference):.1f}%"', dashboard)
+        self.assertNotIn("percentage points above the benchmark", dashboard)
+        self.assertNotIn("percentage points below the benchmark", dashboard)
 
 
 if __name__ == "__main__":
