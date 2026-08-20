@@ -53,7 +53,7 @@ MODEL_CACHE_DIR = ROOT / "model_cache"
 LIGHT_STREET_MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 EZSUMO_URL = os.getenv("EZSUMO_URL", "").strip()
 EZSUMO_LOCAL_URL = "http://localhost:8510/?v=osm-network-fix#study-workspace"
-EZSUMO_PROJECT_URL = "https://amirhtaheri.com/#evidence-lab"
+EZSUMO_PUBLIC_URL = "https://ezsumo.streamlit.app/"
 TRAFFIC_SIGNAL_ICON_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(
     b"""<svg xmlns="http://www.w3.org/2000/svg" width="36" height="72" viewBox="0 0 36 72">
     <rect x="7" y="2" width="22" height="49" rx="5" fill="#171b21" stroke="#f5f5f4" stroke-width="2"/>
@@ -4974,7 +4974,7 @@ def resolved_ezsumo_link() -> tuple[str, str]:
 
     if host.startswith("localhost") or host.startswith("127.0.0.1"):
         return EZSUMO_LOCAL_URL, "Open local EZSUMO ↗"
-    return EZSUMO_PROJECT_URL, "View the EZSUMO project ↗"
+    return EZSUMO_PUBLIC_URL, "Open EZSUMO prototype ↗"
 
 
 def render_research_home() -> None:
