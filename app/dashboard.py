@@ -11,6 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import pydeck as pdk
 import streamlit as st
+import streamlit.components.v2 as components
 
 try:
     from app.ml_modeling import (
@@ -4738,10 +4739,10 @@ def entry_carousel_controls(
         current = options[0]
         st.session_state[state_key] = current
     index = options.index(current)
-    left, centre, right = st.columns([0.72, 5.6, 0.72], vertical_alignment="center")
+    left, centre, right = st.columns([0.9, 5.2, 0.9], vertical_alignment="center")
     with left:
         if st.button(
-            "‹",
+            "←",
             key=f"{state_key}_previous",
             disabled=index == 0,
             help=f"Previous {label}",
@@ -4754,7 +4755,7 @@ def entry_carousel_controls(
         st.markdown(card_html, unsafe_allow_html=True)
     with right:
         if st.button(
-            "›",
+            "→",
             key=f"{state_key}_next",
             disabled=index == len(options) - 1,
             help=f"Next {label}",
@@ -5125,7 +5126,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         .carousel-card::before {content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.035) 50%,transparent 65%);transform:translateX(-100%);animation:cardShimmer 4.5s ease-in-out infinite;pointer-events:none;}
         .carousel-eyebrow {font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#7be7d4;margin-bottom:.5rem;}
         .carousel-big-number {font-size:clamp(3.2rem,8vw,5.7rem);font-weight:950;letter-spacing:-.065em;line-height:1;color:#f7f7f2;margin:.12rem 0;}
-        .carousel-big-number span {font-size:.22em;letter-spacing:.02em;color:#85e8d7;margin-left:.25rem;vertical-align:middle;}
+        .carousel-big-number span {font-size:.22em;letter-spacing:.02em;color:#85e8d7;margin-left:.62rem;vertical-align:middle;}
         .carousel-big-number.small {font-size:clamp(2.8rem,7vw,4.8rem);}
         .carousel-card-title {font-size:clamp(1.25rem,3vw,1.8rem);font-weight:900;color:#edf8f6;margin:.25rem 0;}
         .carousel-card-copy {max-width:580px;font-size:.92rem;line-height:1.5;color:#aebec5;}
@@ -5212,9 +5213,30 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
         .literature-eyebrow {font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#ffc56f}.literature-title{font-size:clamp(1.55rem,3.5vw,2.3rem);font-weight:950;line-height:1.12;color:#f8f2e8;margin:.3rem 0 .55rem}.literature-copy{font-size:1rem;color:#d3cbbd;line-height:1.55}.literature-highlight{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:950;letter-spacing:-.045em;color:#ffc56f;line-height:1;margin:.8rem 0 .25rem}.literature-highlight span{font-size:.3em;letter-spacing:0;color:#e9deca;margin-left:.25rem}.literature-stats{display:flex;flex-wrap:wrap;gap:.55rem;margin:.85rem 0}.literature-stats span{border:1px solid #64583f;border-radius:13px;padding:.55rem .72rem;background:rgba(255,255,255,.035);color:#eee4d4;font-size:.82rem}.literature-note{font-size:.77rem;line-height:1.45;color:#938d83}
         .source-comparison {border:1px solid #5a4f73;border-radius:20px;padding:1rem 1.2rem;background:linear-gradient(120deg,rgba(123,105,174,.17),rgba(255,255,255,.025));margin:-.2rem 0 1.25rem}.comparison-kicker{font-size:.69rem;letter-spacing:.13em;text-transform:uppercase;font-weight:900;color:#c8b8ff}.comparison-result{font-size:clamp(1.1rem,2.6vw,1.5rem);font-weight:850;color:#f0ecff;margin-top:.28rem}.comparison-copy{font-size:.82rem;color:#aaa1bd;margin-top:.28rem}
         .game-action-spacer {height:.7rem;}
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:first-child button,
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:last-child button {
+            width:76px!important;height:76px!important;min-height:76px!important;margin:auto;
+            border-radius:50%!important;border:1px solid #4d6872!important;
+            background:radial-gradient(circle at 35% 28%,#263d45,#111a20 68%)!important;
+            color:#f7fffd!important;font-size:2rem!important;font-weight:400!important;
+            box-shadow:0 12px 30px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.08);
+            transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:first-child button:hover,
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:last-child button:hover {
+            transform:scale(1.1);border-color:#63dfc9!important;
+            background:radial-gradient(circle at 35% 28%,#27675e,#14272a 70%)!important;
+            box-shadow:0 0 0 6px rgba(99,223,201,.10),0 16px 34px rgba(0,0,0,.38);
+        }
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:first-child button:active,
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:last-child button:active {transform:scale(.96)}
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:first-child button:disabled,
+        div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:last-child button:disabled {
+            opacity:.3;transform:none;box-shadow:none;
+        }
         div.stButton > button[kind="primary"] {border-radius: 999px; min-height: 3.2rem; font-weight: 800;}
         div.stButton > button[kind="secondary"] {border-radius: 14px; min-height: 3rem;}
-        @media (max-width: 700px) {.path-card{height:auto;min-height:168px}.carousel-card{min-height:360px;padding:1.1rem}.mix-pills{gap:.25rem}.mix-pills span{font-size:.68rem}.round-title{font-size:1.7rem}.literature-stats span{width:100%;text-align:center}}
+        @media (max-width: 700px) {.path-card{height:auto;min-height:168px}.carousel-card{min-height:360px;padding:1.1rem}.mix-pills{gap:.25rem}.mix-pills span{font-size:.68rem}.round-title{font-size:1.7rem}.literature-stats span{width:100%;text-align:center}div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:first-child button,div[data-testid="stHorizontalBlock"]:has(.carousel-card) > div[data-testid="stColumn"]:last-child button{width:56px!important;height:56px!important;min-height:56px!important;font-size:1.55rem!important}}
         @media (prefers-reduced-motion: reduce) {.carousel-card::before,.mpr-hero-avatar,.mini-fleet span,.scenario-orbit span,.behaviour-avatar{animation:none!important}}
         </style>
         """,
@@ -5271,6 +5293,11 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
                 unsafe_allow_html=True,
             )
             if st.button("Enter the app →", width="stretch"):
+                open_research_view("home")
+                queue_game_sound("whoosh")
+                st.rerun()
+            if st.button("☝ Take the guided tour", key="entry_start_research_tour", width="stretch"):
+                st.session_state["msi_pointer_tour_requested"] = True
                 open_research_view("home")
                 queue_game_sound("whoosh")
                 st.rerun()
@@ -5511,6 +5538,136 @@ st.set_page_config(
     layout="wide",
 )
 
+def render_msi_pointer_tour() -> None:
+    """Run a lightweight spotlight tour over the real research-home controls."""
+    tour_steps = [
+        {
+            "target": "What would you like to investigate?",
+            "title": "Your research home",
+            "copy": "This is the starting point. You can enter the evidence through the method, results, scenarios, maps, or Amir—there is no required reading order.",
+        },
+        {
+            "target": "Open overview",
+            "title": "Understand the study first",
+            "copy": "Overview explains the Berlin simulation, vehicle classes, headways, safety-surrogate measures, statistical methods, and interpretation limits.",
+        },
+        {
+            "target": "See the results",
+            "title": "Begin with the headline findings",
+            "copy": "Results collects the main comparisons and the literature benchmark before you move into individual scenarios.",
+        },
+        {
+            "target": "Choose a scenario",
+            "title": "Inspect one tested future",
+            "copy": "Scenario Explorer narrows the evidence by automation mix and following time, so you do not have to search through static tables.",
+        },
+        {
+            "target": "Open the street lens",
+            "title": "Move from numbers to streets",
+            "copy": "Hotspots and Street Lens connect simulated conflict points to the network, local map context, and rotatable 3D views.",
+        },
+        {
+            "target": "Ask Amir",
+            "title": "Ask when the interface feels dense",
+            "copy": "Amir answers prepared or spontaneous questions from the available study evidence, cites references, and should state when a claim is unsupported.",
+        },
+    ]
+    payload = json.dumps(tour_steps, ensure_ascii=False).replace("</", "<\\/")
+    pointer_component = components.component(
+        "msi_pointer_tour",
+        js=f"""
+        export default function(component) {{
+          const doc = document;
+          const win = window;
+          const old = doc.getElementById('msi-pointer-tour-root');
+          if (old) old.remove();
+          const oldStyle = doc.getElementById('msi-pointer-tour-style');
+          if (oldStyle) oldStyle.remove();
+
+          const steps = {payload};
+          let index = 0;
+          const style = doc.createElement('style');
+          style.id = 'msi-pointer-tour-style';
+          style.textContent = `
+            @keyframes msiCursorPoint {{0%,100%{{transform:translate(-8px,-4px) rotate(-18deg)}}50%{{transform:translate(2px,5px) rotate(-10deg)}}}}
+            #msi-pointer-tour-root {{position:fixed;inset:0;z-index:2147483000;pointer-events:none;font-family:Inter,system-ui,sans-serif}}
+            #msi-tour-focus {{position:fixed;border:3px solid #63dfc9;border-radius:16px;box-shadow:0 0 0 9999px rgba(4,8,12,.72),0 0 0 7px rgba(99,223,201,.13),0 16px 45px rgba(0,0,0,.34);transition:all .3s ease}}
+            #msi-tour-cursor {{position:fixed;font-size:38px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.5));animation:msiCursorPoint .85s ease-in-out infinite;transition:all .3s ease}}
+            #msi-tour-card {{position:fixed;width:min(390px,calc(100vw - 32px));padding:18px 19px 16px;border:1px solid #426b68;border-radius:18px;background:#111b20;color:#f6faf9;box-shadow:0 22px 70px rgba(0,0,0,.5);pointer-events:auto;transition:all .3s ease}}
+            #msi-tour-card small {{color:#74e4d1;font-weight:900;letter-spacing:.12em;text-transform:uppercase}}
+            #msi-tour-card h3 {{margin:7px 0 7px;color:#f6faf9;font-size:21px;line-height:1.2}}
+            #msi-tour-card p {{margin:0;color:#bdcbcf;font-size:14px;line-height:1.5}}
+            .msi-tour-actions {{display:flex;align-items:center;gap:8px;margin-top:15px}}
+            .msi-tour-actions span {{margin-right:auto;color:#80949a;font-size:12px}}
+            .msi-tour-actions button {{border:1px solid #455a61;border-radius:999px;padding:8px 13px;background:#17252b;color:#edf7f5;font-weight:800;cursor:pointer}}
+            .msi-tour-actions button:hover {{border-color:#63dfc9;background:#1d3938}}
+            .msi-tour-actions button.primary {{border-color:#159a88;background:#159a88;color:white}}
+            .msi-tour-close {{position:absolute;right:12px;top:10px;border:0!important;background:transparent!important;color:#91a3a8!important;font-size:18px;padding:4px!important}}
+          `;
+          doc.head.appendChild(style);
+
+          const root = doc.createElement('div');
+          root.id = 'msi-pointer-tour-root';
+          root.innerHTML = `<div id="msi-tour-focus"></div><div id="msi-tour-cursor">☝️</div><div id="msi-tour-card"><button class="msi-tour-close" aria-label="Close tour">×</button><small></small><h3></h3><p></p><div class="msi-tour-actions"><span></span><button class="back">Back</button><button class="next primary">Next</button></div></div>`;
+          doc.body.appendChild(root);
+
+          const focus = root.querySelector('#msi-tour-focus');
+          const cursor = root.querySelector('#msi-tour-cursor');
+          const card = root.querySelector('#msi-tour-card');
+          const findTarget = (text) => [...doc.querySelectorAll('button,h1,h2,h3,[data-testid="stMarkdownContainer"]')]
+            .filter(el => el.offsetParent !== null && (el.innerText || '').trim().includes(text))
+            .sort((a,b) => a.getBoundingClientRect().width - b.getBoundingClientRect().width)[0];
+
+          function closeTour() {{ root.remove(); style.remove(); }}
+          function position() {{
+            const step = steps[index];
+            const target = findTarget(step.target);
+            root.querySelector('small').textContent = `Guided tour · ${{index + 1}} of ${{steps.length}}`;
+            root.querySelector('h3').textContent = step.title;
+            root.querySelector('p').textContent = step.copy;
+            root.querySelector('.msi-tour-actions span').textContent = index === 0 ? 'Follow the pointer' : 'You can go back';
+            root.querySelector('.back').style.visibility = index === 0 ? 'hidden' : 'visible';
+            root.querySelector('.next').textContent = index === steps.length - 1 ? 'Finish' : 'Next';
+            if (!target) {{
+              focus.style.cssText = 'left:16px;top:16px;width:1px;height:1px';
+              cursor.style.display = 'none';
+              card.style.left = '50%'; card.style.top = '50%'; card.style.transform = 'translate(-50%,-50%)';
+              return;
+            }}
+            target.scrollIntoView({{behavior:'smooth',block:'center'}});
+            setTimeout(() => {{
+              const r = target.getBoundingClientRect();
+              const pad = 10;
+              focus.style.left = `${{Math.max(8,r.left-pad)}}px`;
+              focus.style.top = `${{Math.max(8,r.top-pad)}}px`;
+              focus.style.width = `${{Math.min(win.innerWidth-16,r.width+pad*2)}}px`;
+              focus.style.height = `${{r.height+pad*2}}px`;
+              cursor.style.display = 'block';
+              cursor.style.left = `${{Math.min(win.innerWidth-54,r.right+8)}}px`;
+              cursor.style.top = `${{Math.max(18,r.top-30)}}px`;
+              const cardHeight = card.offsetHeight || 220;
+              const below = r.bottom + 22;
+              const top = below + cardHeight < win.innerHeight ? below : Math.max(16,r.top-cardHeight-22);
+              const left = Math.min(Math.max(16,r.left),win.innerWidth-Math.min(390,win.innerWidth-32)-16);
+              card.style.left = `${{left}}px`; card.style.top = `${{top}}px`; card.style.transform = 'none';
+            }}, 420);
+          }}
+          root.querySelector('.next').onclick = () => {{ if (index >= steps.length-1) closeTour(); else {{index++;position();}} }};
+          root.querySelector('.back').onclick = () => {{ if (index > 0) {{index--;position();}} }};
+          root.querySelector('.msi-tour-close').onclick = closeTour;
+          win.addEventListener('resize', position, {{passive:true}});
+          win.addEventListener('keydown', e => {{if(e.key === 'Escape') closeTour();}}, {{once:true}});
+          position();
+          return () => {{
+            if (root.isConnected) root.remove();
+            if (style.isConnected) style.remove();
+          }};
+        }}
+        """,
+        isolate_styles=False,
+    )
+    pointer_component(key="msi_pointer_tour_instance")
+
 conflicts = load_conflicts()
 notes = load_policy_notes()
 academic_references = load_academic_references()
@@ -5531,7 +5688,9 @@ if "research_active_route" not in st.session_state:
 if "research_nav_history" not in st.session_state:
     st.session_state["research_nav_history"] = []
 
-main_home, main_back, main_context = st.columns([1.15, 1.15, 5.7], vertical_alignment="center")
+main_home, main_back, main_tour, main_context = st.columns(
+    [1.15, 1.15, 1.45, 4.25], vertical_alignment="center"
+)
 main_home.button(
     "🏠 Home",
     key="research_main_home",
@@ -5549,7 +5708,15 @@ main_back.button(
     width="stretch",
     on_click=go_back_research_route,
 )
-main_context.caption("Navigation stays available here even when the sidebar is closed.")
+launch_msi_pointer_tour = main_tour.button(
+    "✨ Start tour",
+    key="research_main_tour",
+    help="Follow a moving pointer through the research app",
+    width="stretch",
+)
+if st.session_state.pop("msi_pointer_tour_requested", False):
+    launch_msi_pointer_tour = True
+main_context.caption("New here? Follow the pointer through every research pathway.")
 
 back_shortcut, game_shortcut, sound_shortcut = st.sidebar.columns(
     [1, 4, 1], vertical_alignment="center"
@@ -7460,3 +7627,6 @@ else:
 st.caption(
     "This platform explains validated simulation outputs only. TTC values are surrogate safety indicators and do not represent observed crashes."
 )
+
+if launch_msi_pointer_tour:
+    render_msi_pointer_tour()
