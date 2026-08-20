@@ -51,6 +51,9 @@ UI_SOUND_PATHS = {
 }
 MODEL_CACHE_DIR = ROOT / "model_cache"
 LIGHT_STREET_MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+EZSUMO_URL = os.getenv("EZSUMO_URL", "").strip()
+EZSUMO_LOCAL_URL = "http://localhost:8510/?v=osm-network-fix#study-workspace"
+EZSUMO_PROJECT_URL = "https://amirhtaheri.com/#evidence-lab"
 TRAFFIC_SIGNAL_ICON_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(
     b"""<svg xmlns="http://www.w3.org/2000/svg" width="36" height="72" viewBox="0 0 36 72">
     <rect x="7" y="2" width="22" height="49" rx="5" fill="#171b21" stroke="#f5f5f4" stroke-width="2"/>
@@ -2678,8 +2681,8 @@ def render_hotspot_visual_panel(
 ) -> None:
     st.subheader(title)
     conflict_points = conflict_points_near_hotspot(source_df, hotspot_row, ttc_threshold)
-    location_tab, conflicts_tab, street_tab, local_3d_tab = st.tabs(
-        ["Google Maps location", "Simulated conflict points", "Street-level lens", "Local 3D"]
+    street_tab, location_tab, conflicts_tab, local_3d_tab = st.tabs(
+        ["Street-view lens · Featured", "Google Maps location", "Simulated conflict points", "Local 3D"]
     )
 
     with location_tab:
@@ -4909,6 +4912,8 @@ def on_research_page_change() -> None:
 def on_research_result_change() -> None:
     """Track navigation between result subsections."""
     remember_research_route(current_research_route())
+    if st.session_state.get("results_navigation") == "Hotspot overview":
+        st.session_state["hotspot_default_view"] = "street"
     queue_ui_sound("select")
 
 
@@ -4944,7 +4949,7 @@ def open_research_view(view: str) -> None:
         st.session_state["research_nav_history"] = []
     set_research_route(target_view, target_results, remember=was_open)
     if view == "hotspots":
-        st.session_state["hotspot_default_view"] = "hotspot"
+        st.session_state["hotspot_default_view"] = "street"
     elif view == "3d":
         st.session_state["hotspot_default_view"] = "3d"
     queue_ui_sound("whoosh")
@@ -4955,6 +4960,21 @@ def open_entry_game() -> None:
     st.session_state["entry_portal_open"] = False
     st.session_state["entry_game_stage"] = "welcome"
     queue_ui_sound("whoosh")
+
+
+def resolved_ezsumo_link() -> tuple[str, str]:
+    """Use the live local prototype locally and a safe public fallback online."""
+    if EZSUMO_URL:
+        return EZSUMO_URL, "Open EZSUMO prototype ↗"
+
+    try:
+        host = str(st.context.headers.get("Host", "")).lower()
+    except Exception:
+        host = ""
+
+    if host.startswith("localhost") or host.startswith("127.0.0.1"):
+        return EZSUMO_LOCAL_URL, "Open local EZSUMO ↗"
+    return EZSUMO_PROJECT_URL, "View the EZSUMO project ↗"
 
 
 def render_research_home() -> None:
@@ -4973,6 +4993,16 @@ def render_research_home() -> None:
             background:linear-gradient(145deg,#182329,#11181d);margin:.2rem 0 .55rem}
         .research-path-icon{font-size:2rem}.research-path-title{font-size:1.08rem;font-weight:900;color:#f2f7f6;margin:.35rem 0 .2rem}
         .research-path-copy{font-size:.82rem;color:#9eb0b6;line-height:1.4}
+        .ezsumo-related-card{border:1px solid #386b64;border-radius:22px;padding:1.2rem 1.3rem;
+            background:radial-gradient(circle at 88% 18%,rgba(99,223,201,.13),transparent 34%),
+            linear-gradient(135deg,#14262b,#11181d);margin:1.2rem 0 .65rem}
+        .ezsumo-related-kicker{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+            font-weight:900;color:#72e1cf}.ezsumo-related-title{font-size:1.55rem;font-weight:950;
+            letter-spacing:-.035em;color:#f5faf9;margin:.28rem 0}
+        .ezsumo-related-copy{font-size:.9rem;color:#b8c7cb;max-width:790px;line-height:1.5}
+        .ezsumo-related-flow{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;margin-top:.85rem}
+        .ezsumo-related-flow span{border:1px solid #3f625f;border-radius:999px;padding:.28rem .62rem;
+            color:#d9e8e5;font-size:.72rem;font-weight:800}.ezsumo-related-flow b{color:#63dfc9}
         @media (max-width:700px){.research-path-card{height:auto;min-height:168px}}
         </style>
         <div class="research-home-hero">
@@ -5041,17 +5071,32 @@ def render_research_home() -> None:
         )
     with hotspots:
         st.markdown(
-            '<div class="research-path-card"><div class="research-path-icon">🗺️</div><div class="research-path-title">Hotspots & 3D Lens</div><div class="research-path-copy">Move through the network and inspect where simulated conflicts concentrate.</div></div>',
+            '<div class="research-path-card"><div class="research-path-icon">🗺️</div><div class="research-path-title">Hotspots & Street Lens</div><div class="research-path-copy">Move through the network and inspect simulated conflicts in their street context.</div></div>',
             unsafe_allow_html=True,
         )
         st.button(
-            "Open the 3D Lens →",
-            key="research_home_3d",
+            "Open the street lens →",
+            key="research_home_hotspots",
             type="primary",
             width="stretch",
             on_click=open_research_view,
-            args=("3d",),
+            args=("hotspots",),
         )
+
+    ezsumo_href, ezsumo_label = resolved_ezsumo_link()
+    st.markdown(
+        """
+        <div class="ezsumo-related-card">
+            <div class="ezsumo-related-kicker">Companion prototype · secondary pathway</div>
+            <div class="ezsumo-related-title">EZSUMO</div>
+            <div class="ezsumo-related-copy">Select a packaged network or crop a real street area, set the policy scenario, run SUMO, and translate mobility, safety, and emissions outputs into readable evidence.</div>
+            <div class="ezsumo-related-flow"><span>Select network</span><b>→</b><span>Run SUMO</span><b>→</b><span>Read evidence</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.link_button(ezsumo_label, ezsumo_href, width="stretch")
+    st.caption("Optional companion prototype · MSI remains the validated PhD evidence dashboard.")
 
 
 def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
@@ -5485,6 +5530,26 @@ if "research_active_route" not in st.session_state:
     st.session_state["research_active_route"] = current_research_route()
 if "research_nav_history" not in st.session_state:
     st.session_state["research_nav_history"] = []
+
+main_home, main_back, main_context = st.columns([1.15, 1.15, 5.7], vertical_alignment="center")
+main_home.button(
+    "🏠 Home",
+    key="research_main_home",
+    help="Return to the research home",
+    disabled=st.session_state.get("view_navigation", "Research Home") == "Research Home",
+    width="stretch",
+    on_click=open_research_view,
+    args=("home",),
+)
+main_back.button(
+    "← Back",
+    key="research_main_back",
+    help="Return to the previous page or result",
+    disabled=not bool(st.session_state["research_nav_history"]),
+    width="stretch",
+    on_click=go_back_research_route,
+)
+main_context.caption("Navigation stays available here even when the sidebar is closed.")
 
 back_shortcut, game_shortcut, sound_shortcut = st.sidebar.columns(
     [1, 4, 1], vertical_alignment="center"
@@ -6804,11 +6869,11 @@ elif page == "Hotspot Overview":
             ]
         )
     else:
-        hotspot_tab, network_street_tab, network_3d_tab = st.tabs(
+        network_street_tab, hotspot_tab, network_3d_tab = st.tabs(
             [
+                "Whole-network street lens · Featured",
                 "Hotspot overview",
-                "Whole-network street lens",
-                "🏙️ Whole-network 3D · Featured",
+                "Whole-network 3D",
             ]
         )
 

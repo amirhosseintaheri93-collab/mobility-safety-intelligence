@@ -180,7 +180,7 @@ class ReleaseTests(unittest.TestCase):
             "research_home_results",
             "research_home_amir",
             "research_home_scenario",
-            "research_home_3d",
+            "research_home_hotspots",
         ):
             key_position = dashboard.index(f'key="{key}"')
             nearby = dashboard[key_position : key_position + 150]
@@ -189,11 +189,15 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn('"🎮 Mobility Mix Lab"', dashboard)
         self.assertIn('st.sidebar.markdown("### Research agenda")', dashboard)
         self.assertIn('key="research_history_back"', dashboard)
+        self.assertIn('key="research_main_home"', dashboard)
+        self.assertIn('key="research_main_back"', dashboard)
         self.assertIn("go_back_research_route", dashboard)
         self.assertIn("research_nav_history", dashboard)
         self.assertNotIn('"← Back to Research Home"', dashboard)
         self.assertIn("research_navigation_icons", dashboard)
         self.assertIn("result_navigation_icons", dashboard)
+        self.assertIn('"Whole-network street lens · Featured"', dashboard)
+        self.assertIn('"Street-view lens · Featured"', dashboard)
 
     def test_game_uses_exact_published_benchmark_points_before_curve_values(self) -> None:
         dashboard = (ROOT / "app" / "dashboard.py").read_text(encoding="utf-8")
