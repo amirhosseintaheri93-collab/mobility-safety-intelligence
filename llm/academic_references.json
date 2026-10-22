@@ -1,6 +1,15 @@
 {
   "references": [
     {
+      "id": "ref_taheri_aap_2027",
+      "topic": ["publication", "ttc", "surrogate safety", "sumo", "microsimulation", "automated vehicles", "mixed traffic", "headway", "market penetration", "fleet composition", "intersection", "limitations"],
+      "citation": "Taheri, A., Dorn, A., Karimi, A., Budde, E., Milakis, D., & Müller, S. (2027). How do automated vehicle penetration, vehicle-size composition, and desired headway shape urban traffic conflict patterns? An analysis using a calibrated microsimulation model. Accident Analysis & Prevention, 239, 108835.",
+      "doi": "10.1016/j.aap.2026.108835",
+      "url": "https://doi.org/10.1016/j.aap.2026.108835",
+      "website_url": "https://amirhtaheri.com/publications/automated-vehicle-shares-safer-roads/",
+      "note": "Primary published study underlying MSI's prepared Berlin simulation evidence. Cite for the experimental design and study findings; additional app features are not necessarily evaluated in the article."
+    },
+    {
       "id": "ref_ttc_hayward_1972",
       "topic": ["ttc", "surrogate safety", "conflict severity"],
       "citation": "Hayward, J. C. (1972). Near-miss determination through use of a scale of danger. Highway Research Record, 384, 24-34.",

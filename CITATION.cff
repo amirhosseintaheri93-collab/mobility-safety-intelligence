@@ -20,8 +20,8 @@ keywords:
   - kernel density estimation
   - geospatial visualisation
 preferred-citation:
-  type: unpublished
-  title: "How Do Automated Vehicle Penetration, Vehicle-Size Composition, and Desired Headway Shape Urban Traffic Conflict Patterns? An Analysis Using a Calibrated Microsimulation Model"
+  type: article
+  title: "How do automated vehicle penetration, vehicle-size composition, and desired headway shape urban traffic conflict patterns? An analysis using a calibrated microsimulation model"
   authors:
     - family-names: "Taheri"
       given-names: "Amirhossein"
@@ -33,7 +33,11 @@ preferred-citation:
       given-names: "Edgar"
     - family-names: "Milakis"
       given-names: "Dimitris"
-    - family-names: "Mueller"
+    - family-names: "Müller"
       given-names: "Steffen"
-  year: 2026
-  url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7025301"
+  journal: "Accident Analysis & Prevention"
+  volume: 239
+  start: "108835"
+  year: 2027
+  doi: "10.1016/j.aap.2026.108835"
+  url: "https://amirhtaheri.com/publications/automated-vehicle-shares-safer-roads/"

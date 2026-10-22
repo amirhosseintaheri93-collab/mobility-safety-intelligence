@@ -8,7 +8,7 @@ The demonstrator dataset in `data/demo_conflicts.csv`, original prepared model a
 
 Required attribution:
 
-> Taheri, Amirhossein. *Mobility Safety Intelligence* (2026), research software and demonstrator materials. Scientific context: Taheri, Amirhossein, Anton Dorn, Arastoo Karimi, Edgar Budde, Dimitris Milakis, and Steffen Mueller, “How Do Automated Vehicle Penetration, Vehicle-Size Composition, and Desired Headway Shape Urban Traffic Conflict Patterns? An Analysis Using a Calibrated Microsimulation Model,” SSRN preprint, https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7025301.
+> Taheri, Amirhossein. *Mobility Safety Intelligence* (2026), research software and demonstrator materials. Scientific context: Taheri, Amirhossein, Anton Dorn, Arastoo Karimi, Edgar Budde, Dimitris Milakis, and Steffen Müller, “How do automated vehicle penetration, vehicle-size composition, and desired headway shape urban traffic conflict patterns? An analysis using a calibrated microsimulation model,” *Accident Analysis & Prevention* 239 (2027), 108835, [https://doi.org/10.1016/j.aap.2026.108835](https://doi.org/10.1016/j.aap.2026.108835).
 
 Users must identify changes and retain this attribution and the CC BY 4.0 licence link.
 

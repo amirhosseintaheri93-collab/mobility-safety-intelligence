@@ -929,6 +929,7 @@ def format_manuscript_evidence(chunks: list[dict]) -> str:
 def select_references(question: str, references: list[dict], max_items: int = 3) -> list[dict]:
     normalized = question.lower()
     topic_keywords = {
+        "publication": ["citation", "reference", "doi", "paper title", "published title", "cite"],
         "ttc": ["ttc", "minttc", "severe", "severity", "surrogate", "conflict"],
         "sumo": ["sumo", "simulation", "microsimulation", "validated"],
         "policy": ["policy", "recommend", "regulation", "planning", "deployment", "safe", "safety"],
@@ -971,10 +972,29 @@ def format_reference_list(references: list[dict]) -> str:
     for index, reference in enumerate(references, start=1):
         link = reference.get("url")
         if link:
-            lines.append(f"{index}. [{reference['citation']}]({link})")
+            entry = f"{index}. [{reference['citation']}]({link})"
         else:
-            lines.append(f"{index}. {reference['citation']}")
+            entry = f"{index}. {reference['citation']}"
+        if reference.get("website_url"):
+            entry += f" · [Study page and interactive findings]({reference['website_url']})"
+        lines.append(entry)
     return "\n".join(lines)
+
+
+def render_study_reference(references: list[dict], *, compact: bool = True) -> None:
+    study = next((reference for reference in references if reference["id"] == "ref_taheri_aap_2027"), None)
+    if study is None:
+        return
+    links = (
+        f"[Paper · DOI {study['doi']}]({study['url']}) · "
+        f"[Study page on Amir's website]({study['website_url']})"
+    )
+    if compact:
+        st.caption(f"Research basis: Taheri et al. (2027) · {links}")
+    else:
+        st.markdown("**Published study**")
+        st.markdown(study["citation"])
+        st.markdown(links)
 
 
 @st.cache_resource
@@ -3084,7 +3104,10 @@ def prepared_question_kind(question: str) -> str:
         for phrase in ["meta-analysis", "meta analysis", "literature benchmark", "power function"]
     ):
         return "literature_benchmark"
-    if "reference" in normalized or "literature" in normalized or "citation" in normalized:
+    if (
+        any(term in normalized for term in ["reference", "literature", "citation", "paper title", "published title"])
+        or re.search(r"\b(?:doi|cite)\b", normalized)
+    ):
         return "references"
     if "limitation" in normalized or "outside" in normalized or "cannot prove" in normalized:
         return "limitations"
@@ -5100,7 +5123,7 @@ def render_research_home() -> None:
     st.caption("Optional companion prototype · MSI remains the validated PhD evidence dashboard.")
 
 
-def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
+def render_entry_game(conflicts: pd.DataFrame, benchmark: dict, references: list[dict]) -> None:
     st.markdown(
         """
         <style>
@@ -5302,6 +5325,7 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict) -> None:
                 queue_game_sound("whoosh")
                 st.rerun()
         st.caption("The game and the research app use the same prepared SUMO evidence.")
+        render_study_reference(references)
         return
 
     if stage == "builder":
@@ -5675,13 +5699,14 @@ manuscript_evidence = load_manuscript_evidence()
 literature_benchmark = load_literature_benchmark()
 
 if not st.session_state.get("entry_portal_open", False):
-    render_entry_game(conflicts, literature_benchmark)
+    render_entry_game(conflicts, literature_benchmark, academic_references)
     st.stop()
 
 st.title("Mobility Safety Intelligence")
 st.caption(
     "Explore the Berlin mobility-safety study, one question at a time."
 )
+render_study_reference(academic_references)
 render_pending_game_sound()
 if "research_active_route" not in st.session_state:
     st.session_state["research_active_route"] = current_research_route()
@@ -5915,6 +5940,7 @@ elif page == "Overview":
         "It does not run new simulations in the browser; it helps users inspect validated scenario results, "
         "TTC-based surrogate safety indicators, hotspot concentration, and policy interpretation limits."
     )
+    render_study_reference(academic_references, compact=False)
     st.caption(
         "Recommended question pattern: choose a policy lever, choose a scenario or tau scope, then ask about severe conflicts, minTTC, hotspots, or policy meaning."
     )

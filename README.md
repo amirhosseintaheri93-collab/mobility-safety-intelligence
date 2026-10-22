@@ -4,6 +4,10 @@ An interactive research application for turning microscopic SUMO conflict output
 
 **Live demonstrator:** [mobility-safety-intelligence.streamlit.app](https://mobility-safety-intelligence.streamlit.app/)
 
+**Published study:** [Accident Analysis & Prevention 239 (2027), 108835](https://doi.org/10.1016/j.aap.2026.108835)
+
+**Study page / interactive findings:** [Publication page](https://amirhtaheri.com/publications/automated-vehicle-shares-safer-roads/)
+
 The project was developed by **Amirhossein Taheri** as part of his PhD research at Technische Universitaet Berlin. It combines surrogate-safety analysis, spatial hotspot exploration, explainable machine learning, and interactive network visualisation. The application is an offline analytical layer over prepared SUMO outputs; it is not a live traffic digital twin and does not predict observed crashes.
 
 ## What the software does
@@ -134,10 +138,12 @@ The literature-benchmark values are attributed to Taheri et al. (2026), [doi:10.
 
 ## Citation
 
-Citation metadata are provided in [`CITATION.cff`](CITATION.cff). GitHub's citation panel points to the current SSRN preprint as the preferred scientific citation. When the journal article is published, this entry will be updated to the final DOI. A DOI-backed software release can also be created later through Zenodo.
+Citation metadata are provided in [`CITATION.cff`](CITATION.cff). GitHub's citation panel points to the published journal article as the preferred scientific citation. The article has a 2027 volume year; the software's release metadata remain 2026. A DOI-backed software release can also be created later through Zenodo.
 
 If you use the software, methods, visualisations, demonstrator data, or derived outputs in academic work, please cite both the software and the associated paper:
 
 > Taheri, Amirhossein. *Mobility Safety Intelligence*, version 0.1.0, 2026, https://github.com/amirhosseintaheri93-collab/mobility-safety-intelligence.
 
-> Taheri, Amirhossein, Anton Dorn, Arastoo Karimi, Edgar Budde, Dimitris Milakis, and Steffen Mueller. “How Do Automated Vehicle Penetration, Vehicle-Size Composition, and Desired Headway Shape Urban Traffic Conflict Patterns? An Analysis Using a Calibrated Microsimulation Model.” SSRN preprint, 2026. https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7025301.
+> Taheri, Amirhossein, Anton Dorn, Arastoo Karimi, Edgar Budde, Dimitris Milakis, and Steffen Müller. “How do automated vehicle penetration, vehicle-size composition, and desired headway shape urban traffic conflict patterns? An analysis using a calibrated microsimulation model.” *Accident Analysis & Prevention* 239 (2027), 108835. [https://doi.org/10.1016/j.aap.2026.108835](https://doi.org/10.1016/j.aap.2026.108835).
+
+The [study page and interactive findings](https://amirhtaheri.com/publications/automated-vehicle-shares-safer-roads/) provide additional context for the associated paper.
