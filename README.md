@@ -10,6 +10,12 @@ An interactive research application for turning microscopic SUMO conflict output
 
 The project was developed by **Amirhossein Taheri** as part of his PhD research at Technische Universitaet Berlin. It combines surrogate-safety analysis, spatial hotspot exploration, explainable machine learning, and interactive network visualisation. The application is an offline analytical layer over prepared SUMO outputs; it is not a live traffic digital twin and does not predict observed crashes.
 
+## Research basis and reuse
+
+MSI is an interactive companion to the [published Berlin-Charlottenburg microsimulation study](https://doi.org/10.1016/j.aap.2026.108835). The article documents the simulation model, calibration, scenario design and scientific findings behind the study-derived results explored here. This repository provides the accompanying analysis and presentation code, a demonstrator sample and prepared outputs; the sample is not the complete research dataset.
+
+Street Lens, 3D views, the research assistant and the scenario game are interface extensions, not additional findings validated by the article. When reusing the study-derived data or results in academic work, cite the paper; when using MSI's code or visualisations, also credit the software. See [Citation](#citation) for both references and [DATA_LICENSE.md](DATA_LICENSE.md) for the separate data and code terms.
+
 ## What the software does
 
 - Compares 12 fleet-composition scenarios across desired headways of 0.6, 0.8, and 1.0 seconds.

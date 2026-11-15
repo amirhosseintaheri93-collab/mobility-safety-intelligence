@@ -995,6 +995,21 @@ def render_study_reference(references: list[dict], *, compact: bool = True) -> N
         st.markdown("**Published study**")
         st.markdown(study["citation"])
         st.markdown(links)
+        st.write(
+            "MSI is an interactive companion to this Berlin-Charlottenburg microsimulation study. "
+            "The paper documents the simulation model, calibration, scenarios and scientific findings "
+            "behind the prepared study results explored here. The public demonstrator sample is not "
+            "the complete research dataset."
+        )
+        st.caption(
+            "Street Lens, 3D views, the research assistant and the scenario game are interface "
+            "extensions, not additional findings validated by the article."
+        )
+        st.markdown(
+            "[Source code and citation guidance](https://github.com/amirhosseintaheri93-collab/"
+            "mobility-safety-intelligence#citation). For academic reuse of study-derived data or "
+            "results, cite the paper; for code or visualisations, also credit MSI."
+        )
 
 
 @st.cache_resource
