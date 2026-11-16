@@ -8,6 +8,8 @@ An interactive research application for turning microscopic SUMO conflict output
 
 **Study page / interactive findings:** [Publication page](https://amirhtaheri.com/publications/automated-vehicle-shares-safer-roads/)
 
+**Also included — published meta-analysis:** Taheri et al. (2026), *European Transport Research Review*: [Advancing safety through connected and autonomous vehicles: a meta-analysis of market penetration and safety improvement rates from 2015 to 2024](https://doi.org/10.1186/s12544-026-00774-9). Explore its literature benchmarks in the game or **Results → Literature benchmark**; these remain separate from the Berlin simulation results.
+
 The project was developed by **Amirhossein Taheri** as part of his PhD research at Technische Universitaet Berlin. It combines surrogate-safety analysis, spatial hotspot exploration, explainable machine learning, and interactive network visualisation. The application is an offline analytical layer over prepared SUMO outputs; it is not a live traffic digital twin and does not predict observed crashes.
 
 ## Research basis and reuse

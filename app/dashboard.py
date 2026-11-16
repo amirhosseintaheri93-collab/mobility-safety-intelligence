@@ -981,6 +981,27 @@ def format_reference_list(references: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def render_meta_analysis_reference(benchmark: dict, *, compact: bool = True) -> None:
+    """Attribute the literature layer without presenting it as Berlin evidence."""
+    if not benchmark or not benchmark.get("doi"):
+        return
+    doi = benchmark["doi"]
+    url = f"https://doi.org/{doi}"
+    journal = benchmark["journal"]
+    year = benchmark["year"]
+    if compact:
+        st.caption(
+            f"Also in MSI: Taheri et al. ({year}), {journal} · "
+            f"[Published meta-analysis · DOI {doi}]({url})"
+        )
+    else:
+        st.markdown(f"**{journal} · {year}**")
+        st.markdown(f"[{benchmark['title']}]({url})")
+        st.caption(
+            f"DOI: {doi} · Published cross-study evidence, kept separate from the Berlin simulation results."
+        )
+
+
 def render_study_reference(references: list[dict], *, compact: bool = True) -> None:
     study = next((reference for reference in references if reference["id"] == "ref_taheri_aap_2027"), None)
     if study is None:
@@ -4978,6 +4999,7 @@ def open_research_view(view: str) -> None:
         "home": ("Research Home", None),
         "overview": ("Overview", None),
         "results": ("Results", "Main analysis"),
+        "literature": ("Results", "Literature benchmark"),
         "hotspots": ("Results", "Hotspot overview"),
         "3d": ("Results", "Hotspot overview"),
         "scenario": ("Scenario Detail", None),
@@ -5016,7 +5038,7 @@ def resolved_ezsumo_link() -> tuple[str, str]:
     return EZSUMO_PUBLIC_URL, "Open EZSUMO prototype ↗"
 
 
-def render_research_home() -> None:
+def render_research_home(benchmark: dict) -> None:
     """Offer a simple interactive doorway before showing dense research outputs."""
     st.markdown(
         """
@@ -5121,6 +5143,14 @@ def render_research_home() -> None:
             on_click=open_research_view,
             args=("hotspots",),
         )
+
+    render_meta_analysis_reference(benchmark)
+    st.button(
+        "📚 Explore the meta-analysis →",
+        key="research_home_literature",
+        on_click=open_research_view,
+        args=("literature",),
+    )
 
     ezsumo_href, ezsumo_label = resolved_ezsumo_link()
     st.markdown(
@@ -5339,8 +5369,18 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict, references: list
                 open_research_view("home")
                 queue_game_sound("whoosh")
                 st.rerun()
-        st.caption("The game and the research app use the same prepared SUMO evidence.")
+        st.caption(
+            "Explore prepared Berlin simulation evidence and a separate published meta-analysis "
+            "through the game and research app."
+        )
         render_study_reference(references)
+        render_meta_analysis_reference(benchmark)
+        st.button(
+            "📚 Explore the meta-analysis →",
+            key="entry_open_literature",
+            on_click=open_research_view,
+            args=("literature",),
+        )
         return
 
     if stage == "builder":
@@ -5525,6 +5565,14 @@ def render_entry_game(conflicts: pd.DataFrame, benchmark: dict, references: list
             '</div>',
             unsafe_allow_html=True,
         )
+
+    render_meta_analysis_reference(benchmark)
+    st.button(
+        "Explore the published meta-analysis →",
+        key="entry_results_literature",
+        on_click=open_research_view,
+        args=("literature",),
+    )
 
     if local_result is None or benchmark_value is None:
         comparison_result = "Comparison waiting for your Berlin-study table"
@@ -5941,7 +5989,7 @@ if page != "Research Home":
     )
 
 if page == "Research Home":
-    render_research_home()
+    render_research_home(literature_benchmark)
 
 elif page == "Overview":
     severe_conflicts = filtered_conflicts[filtered_conflicts["minTTC"] <= ttc_threshold].copy()
@@ -6247,6 +6295,7 @@ elif page == "LightGBM + SHAP":
 
 elif page == "Literature Benchmark":
     st.subheader("Results: Published Literature Benchmark")
+    render_meta_analysis_reference(literature_benchmark, compact=False)
     st.write(
         "This module places the Berlin simulation study beside the open-access meta-analysis that forms its "
         "broader evidence context. It is a benchmark layer, not a calibration target or external validation claim."
